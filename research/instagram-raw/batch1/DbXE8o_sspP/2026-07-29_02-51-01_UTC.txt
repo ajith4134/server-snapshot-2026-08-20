@@ -1,0 +1,24 @@
+This visualization is the MacroHFT Regime Fracture Landscape: an interactive research simulation showing how a hypothetical multi-agent HFT system could respond as market regimes change.
+
+The landscape covers 2000–2026 using rolling six-year windows. Its historical stress signal is derived from S&P market behavior, CPI, and interest-rate conditions. It does not use crypto order-book data, execute trades, or train a live AI.
+
+Every point on the upper surface represents a simulated model configuration.
+
+The X axis is hyper-agent arbitration temperature, which controls how concentrated or distributed the model’s sub-agent selection is.
+
+The Y axis is macro-volatility sensitivity, which controls how strongly the system reacts to changing market stress.
+
+The surface height and color represent a deterministic simulated HFT objective. Cool, lower basins represent more stable configurations. Bright ridges and fractures represent higher simulated shock response, agent conflict, slippage stress, drawdown risk, or execution churn.
+
+Five glowing nodes represent specialist HFT sub-agents. Their relative weights change across the timeline. The central hyper-agent marker shows the current arbitration point, while the optimizer path tracks how the lowest-loss basin migrates from one regime window to the next.
+
+Shock wavefronts and vertical fracture pillars highlight unstable regions of the parameter space. The lower sheet visualizes the corresponding regime-memory and tail-pressure field.
+
+The interactive modes separate:
+
+robust loss, shock-response penalty, sub-agent conflict, slippage stress, drawdown risk, and execution churn.
+
+This is a visual model of how an HFT architecture could search for a stable parameter basin during market chaos. It is not proof of real alpha, a live trading system, or an actual trained AI.
+
+Use it free: edgebuildit.com  #aitrading #quant #ai #quantfinance
+#finance

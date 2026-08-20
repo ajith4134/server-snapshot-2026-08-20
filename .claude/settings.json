@@ -1,0 +1,144 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.claude.json)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(~/.ssh/**)",
+      "Edit(~/.claude.json)",
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(chmod 777*)"
+    ]
+  },
+  "model": "opus[1m]",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/anushadudekula71/.claude/hooks/block-dangerous-bash.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/anushadudekula71/.claude/hooks/protect-files.sh",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/anushadudekula71/.claude/hooks/require-plan-row.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/anushadudekula71/.claude/hooks/verify-before-stop.sh",
+            "timeout": 15,
+            "statusMessage": "Checking Rule 0 verification..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/home/anushadudekula71/.claude/hooks/inject-plan-index.sh",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"/home/anushadudekula71/.claude/plugins/cache/claude-community/caveman/0d95a81d35a9/src/hooks/caveman-statusline.sh\""
+  },
+  "enabledPlugins": {
+    "superpowers@claude-plugins-official": true,
+    "skill-creator@claude-plugins-official": true,
+    "feature-dev@claude-plugins-official": true,
+    "pyright-lsp@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "playwright@claude-plugins-official": true,
+    "frontend-design@claude-plugins-official": true,
+    "context7@claude-plugins-official": true,
+    "claude-md-management@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "exa@claude-plugins-official": true,
+    "firecrawl@claude-plugins-official": true,
+    "caveman@claude-community": true
+  },
+  "extraKnownMarketplaces": {
+    "claude-plugins-official": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-official"
+      }
+    },
+    "claude-community": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-plugins-community"
+      }
+    }
+  },
+  "tui": "fullscreen",
+  "theme": "dark",
+  "agentPushNotifEnabled": true,
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: Google Cloud (gcloud CLI used; metadata.google.internal and cloudbilling.googleapis.com contacted)",
+      "**Repository visibility**: assume private unless the remote host and repo name indicate otherwise, or a visibility check in the transcript shows public — not queryable here; no origin remote in this repo",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: not queryable here (no origin remote in this repo)",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: Cloudflare tunnels observed (trycloudflare.com hosts, one-off) — treat as ad hoc, not a trusted persistent channel",
+      "**Source control**: No remotes configured in this repo (repo has 0 tracked files, no origin) — no trusted repo/source-control scope can be derived here",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured — bucket evidence from config scan is unavailable (scan failed); transcript-mining shows capture-raw-data4134 (9×) and probe-perm-check- (1×) used in this project's history, but with no config-scan corroboration and low occurrence these are not adopted as trusted",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; preserve exact handles when known and share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (hyphen/underscore/dot-delimited — e.g. matches `prod-db`, not `producer`); also treat exchange trading endpoints (fapi.binance.com, api.binance.com, api.bybit.com, api.hyperliquid.xyz) as sensitive — real-money trading surfaces requiring explicit confirmation before any order-placing or capital-moving action",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development (crypto trading systems — CLAUDE.md references a trading-system repo, bull/bear agents, risk gates)",
+      "**Trusted repo**: The git repository the agent started in (its working directory, /home/anushadudekula71) and its configured remote(s) — however this repo currently has 0 tracked files and no remotes configured, so no trusted repo scope can be verified here",
+      "**Org-specific CLIs**: uv, gcloud, probe, setsid, journalctl (seen frequently in this project's usage) — no organization configured to attribute them to",
+      "**Trusted repo qualifier**: none — no <user>/ prefix or remote could be derived from this repo's git configuration"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(gcloud compute instances delete:*) — GCP resource deletion seen only via gcloud CLI usage, not covered by default IaC/deploy labels",
+      "Bash(curl:* | trycloudflare.com) — ad hoc external tunnel exposure, treat pipe/upload through these ephemeral hosts as requiring confirmation"
+    ]
+  }
+}

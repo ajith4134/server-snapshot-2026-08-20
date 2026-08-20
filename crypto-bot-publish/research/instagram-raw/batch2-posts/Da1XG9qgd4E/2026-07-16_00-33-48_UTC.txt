@@ -1,0 +1,13 @@
+One of the most obvious attack vectors in today’s technology is through AI takeover, where an AI system has an embedded payload in it that performs malicious things when extracted or the model itself has hidden malicious behaviors that are triggered based on some specific event.
+
+Given the AI security software to detect such threats has not yet reached maturity, we strongly suggest that all AI models be run within an air gapped, sandboxed environments. Then, irrespective of what potential exploits that may already be built into the SLMs you are currently using or ones that may cause malicious behaviors through AI takeover injection (e.g., malicious skills or updated corrupted models), you’ll be able to minimize the damage caused by them.
+
+While we’re strong advocates of SLMs – moving away from the heavy toll and uncertainty of pricing and reliability of cloud-based LLMs – we need to move forward using SLMs with vigilance and with security as a first-class concern. More details below.
+
+Article on AI takeover: https://goju01.substack.com/p/ai-takeover-what-you-need-to-know
+Article on SLMs: https://goju01.substack.com/p/exploring-single-node-language-models
+
+🔔 Subscribe: https://youtube.com/@gojutechtalk
+ 💬 Join the Discord: https://discord.gg/DRPEv8bM4
+ 📸 Instagram: https://instagram.com/gojutechtalk
+ ✍️ Substack: https://goju01.substack.com

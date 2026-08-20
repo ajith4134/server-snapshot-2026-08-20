@@ -1,0 +1,15 @@
+China just open-sourced an AI model built specifically to predict financial markets... and it’s already blowing up in the tech world. 📈🇨🇳
+
+Created by Yu Shi and a research team at Tsinghua University (and accepted to AAAI 2026), Kronos is the first open-source foundation model designed strictly for financial candlestick (K-line) data.
+
+Here is what makes it unique:
+
+👉 Massive Training Data: It was trained on raw OHLCV (Open, High, Low, Close, Volume) sequences across 45+ global exchanges.
+
+👉 Forecast Capability: Feed it 400 candles, and it attempts to predict the next 120 candles for price and volume.
+
+👉 Open Source: It’s fully MIT-licensed and available on Hugging Face, requiring only a few lines of Python to run or finetune on your own market data.
+
+⚠️ The Catch: Raw signals aren’t pure profit. The model doesn’t factor in transaction fees, market slippage, or risk neutralization. It’s built as a research tool, not an automated money printer.
+
+Source: https://ojs.aaai.org/index.php/AAAI/article/view/39730

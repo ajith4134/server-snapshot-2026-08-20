@@ -1,0 +1,7 @@
+There was a wall you couldn’t see.
+
+One huge seller was holding the market down. Price kept hitting it — and bounced. The chart hid it. The order book showed it. So I shorted it down with him.
+
+This is DOM — depth of market. Order flow in real time: the size and the orders behind every move.
+
+If you’re serious about trading like this, comment FLOW.

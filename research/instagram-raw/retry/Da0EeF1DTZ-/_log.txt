@@ -1,0 +1,62 @@
+[Instagram] Setting up session
+[Instagram] Extracting URL: https://www.instagram.com/reel/Da0EeF1DTZ-/
+[Instagram] Da0EeF1DTZ-: Checking post accessibility
+[Instagram] Da0EeF1DTZ-: Downloading JSON metadata
+[download] Downloading playlist: Post by coderss_world
+[Instagram] Playlist Post by coderss_world: Downloading 12 items of 12
+[download] Downloading item 1 of 12
+ERROR: [Instagram] DaycFRhDfmc: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 2 of 12
+ERROR: [Instagram] DaycFRmDbCB: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 3 of 12
+ERROR: [Instagram] DaycFRkjfZI: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 4 of 12
+ERROR: [Instagram] DaycFRmjTB0: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 5 of 12
+ERROR: [Instagram] DaycFRkjZPP: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 6 of 12
+ERROR: [Instagram] DaycFRrjQg_: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 7 of 12
+ERROR: [Instagram] DaycFRrDV1u: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 8 of 12
+ERROR: [Instagram] DaycFRqjeNy: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 9 of 12
+ERROR: [Instagram] DaycFRmDTOu: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 10 of 12
+ERROR: [Instagram] DaycFRkjSoz: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 11 of 12
+ERROR: [Instagram] DaycFRpjdR1: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 12 of 12
+ERROR: [Instagram] DaycFRkjfRV: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Finished downloading playlist: Post by coderss_world
+[Instagram] Setting up session
+[Instagram] Extracting URL: https://www.instagram.com/p/Da0EeF1DTZ-/
+[Instagram] Da0EeF1DTZ-: Checking post accessibility
+[Instagram] Da0EeF1DTZ-: Downloading JSON metadata
+[download] Downloading playlist: Post by coderss_world
+[Instagram] Playlist Post by coderss_world: Downloading 12 items of 12
+[download] Downloading item 1 of 12
+ERROR: [Instagram] DaycFRhDfmc: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 2 of 12
+ERROR: [Instagram] DaycFRmDbCB: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 3 of 12
+ERROR: [Instagram] DaycFRkjfZI: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 4 of 12
+ERROR: [Instagram] DaycFRmjTB0: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 5 of 12
+ERROR: [Instagram] DaycFRkjZPP: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 6 of 12
+ERROR: [Instagram] DaycFRrjQg_: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 7 of 12
+ERROR: [Instagram] DaycFRrDV1u: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 8 of 12
+ERROR: [Instagram] DaycFRqjeNy: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 9 of 12
+ERROR: [Instagram] DaycFRmDTOu: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 10 of 12
+ERROR: [Instagram] DaycFRkjSoz: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 11 of 12
+ERROR: [Instagram] DaycFRpjdR1: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Downloading item 12 of 12
+ERROR: [Instagram] DaycFRkjfRV: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+[download] Finished downloading playlist: Post by coderss_world

@@ -1,0 +1,15 @@
+Kronos is an open-source foundation model built specifically for financial candlestick data.🤯📈
+
+Instead of treating market charts like ordinary numbers, it converts raw OHLCV data into tokens and uses a decoder-only Transformer to predict what may come next. Give it 400 candles, and it can forecast the next 120.
+
+What makes it especially interesting is that developers can fine-tune both the tokenizer and prediction model using their own market data. The repository also includes multi-GPU training scripts, open weights on Hugging Face, and an MIT license.
+
+That makes Kronos more accessible for researchers, developers, and quantitative traders who want to experiment without building a financial model from scratch.
+
+But the creators are clear about one important limitation. The demo outputs are raw predictions, not a complete trading strategy.
+
+Kronos should be treated as a research tool, not guaranteed financial advice or an automatic profit system.
+
+Follow for more @hypertech 
+
+#github #opensource #fintech #artificialintelligence #trading

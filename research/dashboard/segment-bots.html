@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Segment bots</title>
+<meta http-equiv="refresh" content="20">
+<style>
+.capital{display:flex;gap:1.4rem;flex-wrap:wrap;margin:.6rem 0}
+.capital .n{font-size:1.15rem;font-weight:600;display:block}
+.capital .l{font-size:.72rem;opacity:.65;display:block}
+.why.failing{color:#ff6b6b}
+.why.unmeasured{opacity:.6}
+:root { --bg:#0d1117; --panel:#161b22; --line:#30363d; --text:#e6edf3;
+        --dim:#8b949e; --up:#3fb950; --down:#f85149; --warn:#d29922; }
+* { box-sizing:border-box; }
+body { margin:0; padding:24px; background:var(--bg); color:var(--text);
+       font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; }
+h1 { font-size:20px; margin:0 0 4px; }
+.banner { background:#1c2128; border:1px solid var(--warn); border-left:4px solid var(--warn);
+          padding:12px 14px; margin:16px 0 24px; color:#d9c8a0; }
+.stamp { color:var(--dim); margin:0 0 16px; }
+.grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(460px,1fr)); gap:16px; }
+.tile { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:16px;
+        overflow-x:auto; }
+.tile.live { border-left:4px solid var(--up); }
+.numbers.capital { border-top:1px dashed var(--line); padding-top:10px; margin-top:6px; }
+.warnt { color:var(--warn); }
+.badge.warming { background:#3a2f12; color:#e7c96b; border:1px solid var(--warn); }
+.flat { color:var(--dim); }
+.tile.stale { border-left:4px solid var(--warn); }
+.tile.off { border-left:4px solid var(--dim); }
+.tile.unmeasured { border-left:4px solid var(--dim); background:#12161c; }
+header { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+h2 { font-size:16px; margin:0; text-transform:uppercase; letter-spacing:.06em; }
+.badge { font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid var(--line); }
+.badge.live { color:var(--up); border-color:var(--up); }
+.badge.stale { color:var(--warn); border-color:var(--warn); }
+.badge.off, .badge.unmeasured { color:var(--dim); }
+.badge.ruleb { color:var(--warn); border-color:var(--warn); }
+.badge.learned { color:#a371f7; border-color:#a371f7; }
+.badge.claim { color:var(--up); border-color:var(--up); }
+.meta { color:var(--dim); margin:4px 0; font-size:12px; }
+.why { color:var(--dim); font-size:12px; }
+.numbers { display:flex; gap:18px; flex-wrap:wrap; margin:12px 0; }
+.numbers .n { display:block; font-size:19px; }
+.numbers .l { display:block; color:var(--dim); font-size:11px; text-transform:uppercase; }
+.up { color:var(--up); } .down { color:var(--down); } .flat { color:var(--dim); }
+.thin { color:var(--dim); font-size:11px; }
+table { width:100%; border-collapse:collapse; margin-top:8px; font-size:12px; }
+th { text-align:left; color:var(--dim); font-weight:normal; border-bottom:1px solid var(--line);
+     padding:4px 6px; }
+td { padding:3px 6px; border-bottom:1px solid #21262d; white-space:nowrap; }
+td.open { color:var(--up); } td.close { color:var(--warn); }
+code { color:#79c0ff; }
+a { color:#79c0ff; }
+</style></head><body>
+<h1>Segment bots — live paper trading</h1>
+<p class="stamp">measured 2026-08-20 05:58:44 UTC · 0 of 4 bots LIVE ·
+   6378 opened · 6290 closed · page refreshes every 20s ·
+   <a href="index.html">index</a></p>
+<div class="banner">
+  <strong>A tile marked LEARNED decides from a trained model (RL-026); one marked RULE
+  BRAIN is still on stated thresholds and makes no edge claim (RL-025).</strong>
+  Every learned tile names the model version its decisions came from, and every model in
+  the registry names the counted trial and the out-of-fold score that produced it (§1a L1).
+  <strong>§1a L6 — out-of-regime stress — FAILS by construction</strong> while the archive
+  holds one regime, and is reported rather than omitted.
+  <br><br>
+  The P&amp;L here is paper and is <em>not</em> evidence of edge: the promotion gate,
+  not this board, governs any real-money step.
+  <br><br>
+  Prices are live venue websocket and REST feeds (RL-024), never the parquet store.
+  Fills are modelled; no order reaches a venue.
+</div>
+<div class="grid">
+    <section class="tile off">
+      <header>
+        <h2>perp</h2>
+        <span class="badge off">OFF</span>
+        <span class='badge learned'>LEARNED · model 976ee2399a5c</span>
+      </header>
+      <p class="meta">
+        venue <strong>binance-futures</strong> ·
+        band <strong>fast</strong> ·
+        heartbeat 12.0h ago ·
+        feed <strong>LIVE</strong>
+        (newest tick 0.0s,
+         23843535 ticks, 3 reconnects)
+      </p>
+      <p class="meta">brains ·
+        BULL <code>perp-bull-learned</code> ·
+        BEAR <code>perp-bear-learned</code> ·
+        PROFIT-TAIL <code>perp-profit-tail-learned</code>
+      </p>
+      <div class="numbers">
+        <div><span class="n">3364</span><span class="l">opened</span></div>
+        <div><span class="n">3362</span><span class="l">closed</span></div>
+        <div><span class="n">1</span><span class="l">open now</span></div>
+        <div><span class="n up">+1.8298</span><span class="l">realised P&amp;L</span></div>
+        <div><span class="n">48.7%</span><span class="l">winrate</span></div>
+        <div><span class="n">0</span><span class="l">missed entries</span></div>
+      </div>
+      <p class="meta counts">polls 689 ·
+        abstentions 270724 ·
+        selected 12 ·
+        gate refusals 0 ·
+        ratchets 6 ·
+        frames refused 43</p>
+      <p class='meta'>live-fitted (§1a L2) · abstention coverage promised <strong>0.65</strong>, realised <strong class='down'>0.4871</strong> over 700 resolved decision(s) — <strong>BREACHED</strong> · 700 live update(s)</p>
+      
+      <div class="numbers capital">
+        <div><span class="n">500.00</span><span class="l">peak at risk USDT</span></div>
+        <div><span class="n">150.00</span><span class="l">open now USDT</span></div>
+        <div><span class="n">3,504.16</span><span class="l">turnover USDT</span></div>
+        <div><span class="n">+0.5721</span><span class="l">realised USDT</span></div>
+        <div><span class="n">1,000.57</span><span class="l">equity of 1,000</span></div>
+      </div>
+      <p class="meta">return on · peak <span class='up'>+0.11%</span>
+        · turnover <span class='up'>+0.02%</span>
+        · bankroll <span class='up'>+0.06%</span>
+        · <span class='thin'>gross of fees</span> · <span class='warnt'>48 fill(s) unconvertible (BTC, UNCONVERTIBLE) — excluded from every figure here</span></p>
+      
+    <div class="capital">
+      <div><span class="n">2,000</span><span class="l">portfolio USDT</span></div>
+      <div><span class="n">1,200</span><span class="l">this bot's cap</span></div>
+      <div><span class="n">50.00</span><span class="l">margin in use</span></div>
+      <div><span class="n">1,950.00</span><span class="l">pool headroom</span></div>
+    </div>
+    <p class="why">Margin per trade 5&ndash;50 USDT
+       &middot; leverage volatility_targeted up to
+       20x
+       &middot; declared 2026-08-19T14:24:35Z</p>
+    <p class="why">Entries refused: <span class='thin'>none</span></p>
+      <table><thead><tr><th>when</th><th>event</th><th>symbol</th><th>side</th><th>price</th><th>capital</th><th>lev</th><th>peak +</th><th>peak &minus;</th><th>reason</th><th>P&amp;L</th></tr></thead><tbody><tr><td>12.1h ago</td><td class='close'>CLOSE</td><td>BTCDOMUSDT</td><td>LONG</td><td>5491.4</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span></td><td class='down'>0.0319 <span class='thin'>+0.06%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.01365398969578910957781863861</td></tr><tr><td>12.1h ago</td><td class='open'>OPEN</td><td>PAXGUSDT</td><td>LONG</td><td>4474.6800</td><td>50.00</td><td>3x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.1h ago</td><td class='close'>CLOSE</td><td>ASTERUSDT</td><td>LONG</td><td>0.6064000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0825 <span class='thin'>+0.17%</span></td><td class='down'>0.0000 <span class='thin'>+0.00%</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.04952129415648728953449983493</td></tr><tr><td>12.1h ago</td><td class='open'>OPEN</td><td>BTCDOMUSDT</td><td>LONG</td><td>5492.9</td><td>50.00</td><td>1x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.2h ago</td><td class='open'>OPEN</td><td>ASTERUSDT</td><td>LONG</td><td>0.6058000</td><td>50.00</td><td>1x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.2h ago</td><td class='close'>CLOSE</td><td>SUNUSDT</td><td>LONG</td><td>0.0170340</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span></td><td class='down'>0.2904 <span class='thin'>+0.06%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.2904077442065121736579642124</td></tr><tr><td>12.2h ago</td><td class='close'>CLOSE</td><td>HYPERUSDT</td><td>LONG</td><td>0.0639800</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0235 <span class='thin'>+0.05%</span></td><td class='down'>0.0078 <span class='thin'>+0.02%</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.02345582486317435496481626270</td></tr><tr><td>12.3h ago</td><td class='open'>OPEN</td><td>SUNUSDT</td><td>LONG</td><td>0.0170450</td><td>50.00</td><td>9x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.3h ago</td><td class='open'>OPEN</td><td>HYPERUSDT</td><td>LONG</td><td>0.0639500</td><td>50.00</td><td>1x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.4h ago</td><td class='close'>CLOSE</td><td>1000CHEEMSUSDT</td><td>LONG</td><td>0.0004982</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0301 <span class='thin'>+0.06%</span></td><td class='down'>0.1304 <span class='thin'>+0.26%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.01003411599438089504314669878</td></tr><tr><td>12.4h ago</td><td class='close'>CLOSE</td><td>BTCDOMUSDT</td><td>LONG</td><td>5501.5</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0273 <span class='thin'>+0.05%</span></td><td class='down'>0.0000 <span class='thin'>+0.00%</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.01363636363636363636363636364</td></tr><tr><td>12.4h ago</td><td class='close'>CLOSE</td><td>1INCHUSDT</td><td>LONG</td><td>0.0863800</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.1451 <span class='thin'>+0.29%</span> <span class='thin'>(4 samples)</span></td><td class='down'>0.0000 <span class='thin'>+0.00%</span> <span class='thin'>(4 samples)</span></td><td>TARGET_REACHED</td><td class='up'>0.1451294554742830604899570417</td></tr></tbody></table>
+    </section>
+    <section class="tile off">
+      <header>
+        <h2>spot</h2>
+        <span class="badge off">OFF</span>
+        <span class='badge learned'>LEARNED · model 99b11a8893b9</span>
+      </header>
+      <p class="meta">
+        venue <strong>binance-spot</strong> ·
+        band <strong>fast</strong> ·
+        heartbeat 12.0h ago ·
+        feed <strong>LIVE</strong>
+        (newest tick 0.0s,
+         45457380 ticks, 0 reconnects)
+      </p>
+      <p class="meta">brains ·
+        BULL <code>spot-bull-learned</code> ·
+        BEAR <code>spot-bear-learned</code> ·
+        PROFIT-TAIL <code>spot-profit-tail-learned</code>
+      </p>
+      <div class="numbers">
+        <div><span class="n">2458</span><span class="l">opened</span></div>
+        <div><span class="n">2457</span><span class="l">closed</span></div>
+        <div><span class="n">0</span><span class="l">open now</span></div>
+        <div><span class="n up">+523.2965</span><span class="l">realised P&amp;L</span></div>
+        <div><span class="n">48.0%</span><span class="l">winrate</span></div>
+        <div><span class="n">0</span><span class="l">missed entries</span></div>
+      </div>
+      <p class="meta counts">polls 675 ·
+        abstentions 218617 ·
+        selected 18 ·
+        gate refusals 0 ·
+        ratchets 0 ·
+        frames refused 280</p>
+      <p class='meta'>live-fitted (§1a L2) · abstention coverage promised <strong>0.65</strong>, realised <strong class='down'>0.4915</strong> over 590 resolved decision(s) — <strong>BREACHED</strong> · 590 live update(s)</p>
+      
+      <div class="numbers capital">
+        <div><span class="n">900.00</span><span class="l">peak at risk USDT</span></div>
+        <div><span class="n">0.00</span><span class="l">open now USDT</span></div>
+        <div><span class="n">5,917.17</span><span class="l">turnover USDT</span></div>
+        <div><span class="n">+1.6974</span><span class="l">realised USDT</span></div>
+        <div><span class="n">1,001.70</span><span class="l">equity of 1,000</span></div>
+      </div>
+      <p class="meta">return on · peak <span class='up'>+0.19%</span>
+        · turnover <span class='up'>+0.03%</span>
+        · bankroll <span class='up'>+0.17%</span>
+        · <span class='thin'>gross of fees</span> · <span class='warnt'>948 fill(s) unconvertible (BTC, ETH, UNCONVERTIBLE) — excluded from every figure here</span></p>
+      
+    <div class="capital">
+      <div><span class="n">2,000</span><span class="l">portfolio USDT</span></div>
+      <div><span class="n">1,200</span><span class="l">this bot's cap</span></div>
+      <div><span class="n">0.00</span><span class="l">margin in use</span></div>
+      <div><span class="n">1,950.00</span><span class="l">pool headroom</span></div>
+    </div>
+    <p class="why">Margin per trade 5&ndash;50 USDT
+       &middot; leverage volatility_targeted up to
+       5x
+       &middot; declared 2026-08-19T14:24:35Z</p>
+    <p class="why">Entries refused: <span class='thin'>NO_USD_RATE</span> 6</p>
+      <table><thead><tr><th>when</th><th>event</th><th>symbol</th><th>side</th><th>price</th><th>capital</th><th>lev</th><th>peak +</th><th>peak &minus;</th><th>reason</th><th>P&amp;L</th></tr></thead><tbody><tr><td>12.0h ago</td><td class='close'>CLOSE</td><td>BTCUSD</td><td>SHORT</td><td>68214.58000000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span></td><td class='down'>0.1009 <span class='thin'>+0.20%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.09480729224498380565136648813</td></tr><tr><td>12.2h ago</td><td class='open'>OPEN</td><td>BTCUSD</td><td>SHORT</td><td>68085.48000000</td><td>50.00</td><td>1x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.3h ago</td><td class='close'>CLOSE</td><td>METABUSDT</td><td>SHORT</td><td>553.15000000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0831 <span class='thin'>+0.17%</span></td><td class='down'>0.0000 <span class='thin'>+0.00%</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.03613043085538795050130972812</td></tr><tr><td>12.3h ago</td><td class='close'>CLOSE</td><td>PAXGUSDT</td><td>SHORT</td><td>4478.25000000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span></td><td class='down'>0.0974 <span class='thin'>+0.10%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.08492663902826045659243035458</td></tr><tr><td>12.4h ago</td><td class='open'>OPEN</td><td>METABUSDT</td><td>SHORT</td><td>553.55000000</td><td>50.00</td><td>1x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.5h ago</td><td class='close'>CLOSE</td><td>EURUSDC</td><td>SHORT</td><td>1.16700000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0214 <span class='thin'>+0.01%</span></td><td class='down'>0.0214 <span class='thin'>+0.01%</span></td><td>MAX_HOLD_REACHED</td><td class=''>0E-33</td></tr><tr><td>12.5h ago</td><td class='open'>OPEN</td><td>PAXGUSDT</td><td>SHORT</td><td>4474.45000000</td><td>50.00</td><td>2x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>12.5h ago</td><td class='close'>CLOSE</td><td>XAUTUSDT</td><td>SHORT</td><td>4466.88000000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0316 <span class='thin'>+0.03%</span></td><td class='down'>0.0273 <span class='thin'>+0.03%</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.03155569580309245818870306091</td></tr><tr><td>12.5h ago</td><td class='close'>CLOSE</td><td>KGSTUSDT</td><td>SHORT</td><td>0.01144100</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span> <span class='thin'>(3 samples)</span></td><td class='down'>0.0044 <span class='thin'>+0.01%</span> <span class='thin'>(3 samples)</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.004370629370629370629370629371</td></tr><tr><td>12.6h ago</td><td class='close'>CLOSE</td><td>USDCUSD</td><td>SHORT</td><td>0.99982000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0025 <span class='thin'>+0.00%</span></td><td class='down'>0.0100 <span class='thin'>+0.00%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.007501575330819472089138719130</td></tr><tr><td>12.6h ago</td><td class='close'>CLOSE</td><td>USDTUSD</td><td>SHORT</td><td>0.99949000</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'>0.0000 <span class='thin'>+0.00%</span></td><td class='down'>0.0100 <span class='thin'>+0.00%</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.01000550302666466556606133373</td></tr><tr><td>12.6h ago</td><td class='open'>OPEN</td><td>EURUSDC</td><td>SHORT</td><td>1.16700000</td><td>50.00</td><td>5x</td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr></tbody></table>
+    </section>
+    <section class="tile off">
+      <header>
+        <h2>dated</h2>
+        <span class="badge off">OFF</span>
+        <span class='badge ruleb'>RULE BRAIN · NO EDGE CLAIM</span>
+      </header>
+      <p class="meta">
+        venue <strong>bybit</strong> ·
+        band <strong>slow</strong> ·
+        heartbeat 16.0h ago ·
+        feed <strong>LIVE</strong>
+        (newest tick 2.242s,
+         2655156 ticks, 4 reconnects)
+      </p>
+      <p class="meta">brains ·
+        BULL <code>dated-bull-rule</code> ·
+        BEAR <code>dated-bear-rule</code> ·
+        PROFIT-TAIL <code>dated-profit-tail-slow</code>
+      </p>
+      <div class="numbers">
+        <div><span class="n">173</span><span class="l">opened</span></div>
+        <div><span class="n">148</span><span class="l">closed</span></div>
+        <div><span class="n">18</span><span class="l">open now</span></div>
+        <div><span class="n down">-111.7608</span><span class="l">realised P&amp;L</span></div>
+        <div><span class="n">35.8%</span><span class="l">winrate</span></div>
+        <div><span class="n">0</span><span class="l">missed entries</span></div>
+      </div>
+      <p class="meta counts">polls 2546 ·
+        abstentions 63473 ·
+        selected 47 ·
+        gate refusals 0 ·
+        ratchets 478 ·
+        frames refused 0</p>
+      <p class='meta'>live-fitted (§1a L2) · <span class='thin'>NOT MEASURED — no calibration held yet</span></p>
+      
+      <div class="numbers capital">
+        <div><span class="n">8,513.73</span><span class="l">peak at risk USDT</span></div>
+        <div><span class="n">5,966.11</span><span class="l">open now USDT</span></div>
+        <div><span class="n">56,957.51</span><span class="l">turnover USDT</span></div>
+        <div><span class="n">-99.2058</span><span class="l">realised USDT</span></div>
+        <div><span class="n">900.79</span><span class="l">equity of 1,000</span></div>
+      </div>
+      <p class="meta">return on · peak <span class='down'>-1.17%</span>
+        · turnover <span class='down'>-0.17%</span>
+        · bankroll <span class='down'>-9.92%</span>
+        · <span class='thin'>gross of fees</span> · <span class='warnt'>40 fill(s) unconvertible (UNCONVERTIBLE) — excluded from every figure here</span></p>
+      <p class='why unmeasured'>NOT MEASURED &mdash; this bot has not published a capital block.</p>
+      <table><thead><tr><th>when</th><th>event</th><th>symbol</th><th>side</th><th>price</th><th>capital</th><th>lev</th><th>peak +</th><th>peak &minus;</th><th>reason</th><th>P&amp;L</th></tr></thead><tbody><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDZ26</td><td>SHORT</td><td>65785.50</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.33500</td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDZ26</td><td>SHORT</td><td>65747.50</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDU26</td><td>SHORT</td><td>65089.00</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.28500</td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDU26</td><td>SHORT</td><td>65088.50</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDT-25SEP26</td><td>SHORT</td><td>65165.70</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.29500</td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDT-25SEP26</td><td>SHORT</td><td>65165.60</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDT-25DEC26</td><td>SHORT</td><td>65854.40</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.31400</td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDT_261225</td><td>SHORT</td><td>65845.3</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.4800</td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTCUSDT_260925</td><td>SHORT</td><td>65162.1</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TARGET_REACHED</td><td class='up'>3.4040</td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDT-25DEC26</td><td>SHORT</td><td>65854.30</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDT_261225</td><td>SHORT</td><td>65833.0</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTCUSDT_260925</td><td>SHORT</td><td>65153.2</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr></tbody></table>
+    </section>
+    <section class="tile off">
+      <header>
+        <h2>options</h2>
+        <span class="badge off">OFF</span>
+        <span class='badge ruleb'>RULE BRAIN · NO EDGE CLAIM</span>
+      </header>
+      <p class="meta">
+        venue <strong>deribit</strong> ·
+        band <strong>slow</strong> ·
+        heartbeat 16.0h ago ·
+        feed <strong>LIVE</strong>
+        (newest tick 0.745s,
+         2216016 ticks, 4 reconnects)
+      </p>
+      <p class="meta">brains ·
+        BULL <code>options-bull-rule</code> ·
+        BEAR <code>options-bear-rule</code> ·
+        PROFIT-TAIL <code>options-profit-tail-slow</code>
+      </p>
+      <div class="numbers">
+        <div><span class="n">383</span><span class="l">opened</span></div>
+        <div><span class="n">323</span><span class="l">closed</span></div>
+        <div><span class="n">60</span><span class="l">open now</span></div>
+        <div><span class="n down">-0.0857</span><span class="l">realised P&amp;L</span></div>
+        <div><span class="n">30.7%</span><span class="l">winrate</span></div>
+        <div><span class="n">0</span><span class="l">missed entries</span></div>
+      </div>
+      <p class="meta counts">polls 2544 ·
+        abstentions 2976774 ·
+        selected 85385 ·
+        gate refusals 85262 ·
+        ratchets 112 ·
+        frames refused 119</p>
+      <p class='meta'>live-fitted (§1a L2) · <span class='thin'>NOT MEASURED — no calibration held yet</span></p>
+      
+      <div class="numbers capital">
+        <div><span class="n">30,144.99</span><span class="l">peak at risk USDT</span></div>
+        <div><span class="n">30,144.99</span><span class="l">open now USDT</span></div>
+        <div><span class="n">64,899.63</span><span class="l">turnover USDT</span></div>
+        <div><span class="n">-1,604.1448</span><span class="l">realised USDT</span></div>
+        <div><span class="n">-604.14</span><span class="l">equity of 1,000</span></div>
+      </div>
+      <p class="meta">return on · peak <span class='down'>-5.32%</span>
+        · turnover <span class='down'>-2.47%</span>
+        · bankroll <span class='down'>-160.41%</span>
+        · <span class='thin'>gross of fees</span> · <span class='warnt'>342 fill(s) unconvertible (BTC, ETH) — excluded from every figure here</span></p>
+      <p class='why unmeasured'>NOT MEASURED &mdash; this bot has not published a capital block.</p>
+      <table><thead><tr><th>when</th><th>event</th><th>symbol</th><th>side</th><th>price</th><th>capital</th><th>lev</th><th>peak +</th><th>peak &minus;</th><th>reason</th><th>P&amp;L</th></tr></thead><tbody><tr><td>16.0h ago</td><td class='close'>CLOSE</td><td>BTC-25DEC26-66000-C</td><td>LONG</td><td>0.092</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.0002500</td></tr><tr><td>16.0h ago</td><td class='open'>OPEN</td><td>BTC-26MAR27-62000-P</td><td>LONG</td><td>0.0925</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.3h ago</td><td class='close'>CLOSE</td><td>BTC-30OCT26-65000-P</td><td>LONG</td><td>0.061</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.0003500</td></tr><tr><td>16.3h ago</td><td class='open'>OPEN</td><td>BTC-26MAR27-70000-P</td><td>LONG</td><td>0.157</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.4h ago</td><td class='close'>CLOSE</td><td>BTC-30OCT26-71000-C</td><td>LONG</td><td>0.031</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>TAIL_EXHAUSTED</td><td class='up'>0.0001500</td></tr><tr><td>16.4h ago</td><td class='open'>OPEN</td><td>ETH-26MAR27-1800-C</td><td>SHORT</td><td>0.2075</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.4h ago</td><td class='close'>CLOSE</td><td>BTC-26MAR27-76000-P</td><td>LONG</td><td>0.2085</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.0012000</td></tr><tr><td>16.4h ago</td><td class='open'>OPEN</td><td>BTC-25JUN27-74000-P</td><td>LONG</td><td>0.2125</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.5h ago</td><td class='close'>CLOSE</td><td>BTC-25DEC26-70000-C</td><td>LONG</td><td>0.066</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>MAX_HOLD_REACHED</td><td class='up'>0.0002500</td></tr><tr><td>16.5h ago</td><td class='open'>OPEN</td><td>BTC-25DEC26-70000-C</td><td>LONG</td><td>0.067</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr><tr><td>16.6h ago</td><td class='close'>CLOSE</td><td>BTC-25DEC26-60000-P</td><td>LONG</td><td>0.053</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>MAX_HOLD_REACHED</td><td class='down'>-0.0003500</td></tr><tr><td>16.6h ago</td><td class='open'>OPEN</td><td>BTC-25DEC26-60000-P</td><td>LONG</td><td>0.054</td><td><span class='thin'>&mdash;</span></td><td><span class='thin'>&mdash;</span></td><td class='up'><span class='thin'>&mdash;</span></td><td class='down'><span class='thin'>&mdash;</span></td><td>SELECTED</td><td class=''></td></tr></tbody></table>
+    </section></div>
+</body></html>

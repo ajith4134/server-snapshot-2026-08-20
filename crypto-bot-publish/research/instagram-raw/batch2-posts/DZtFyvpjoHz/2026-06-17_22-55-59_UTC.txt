@@ -1,0 +1,4 @@
+A strong quant resume is not about saying you know Python — it is about proving you can build systems that look like real trading infrastructure. Projects like a real-time options pricing engine, statistical arbitrage backtester, factor model portfolio builder, HFT market simulator, 99% VaR risk engine, crypto arbitrage bot, ML alpha model, and constrained portfolio optimizer show recruiters that you understand data, execution, risk, derivatives, and signal testing — the exact skills quant teams care about before they ever look at your GPA.
+
+Edited for educational purposes. No
+ownership claimed. This content is for informational purposes only and does not constitute financial or investment advice.

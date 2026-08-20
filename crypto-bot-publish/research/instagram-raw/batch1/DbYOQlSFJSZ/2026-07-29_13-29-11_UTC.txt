@@ -1,0 +1,13 @@
+Vol drops from 18% to 8%.
+
+The gamma bell goes tall and narrow at the strike. All the convexity stacks up at the money, so a small move swings your delta hard.
+
+Vol comes back and the bell flattens. Same option, sensitivity spread thin across strikes.
+
+Zomma measures that reshaping. dGamma over dVol. Near the money it runs negative, so a vol spike drains gamma from exactly where you are sitting. The stock never has to move.
+
+And look at the price. It grinds up while vol bleeds, then rolls over when vol wakes up. Leverage effect. Your gamma and your direction get hit together.
+
+Scripts and yt video explaining in my bio
+
+#options #volatility #gamma #zomma #greeks #optionstrading #impliedvolatility #derivatives

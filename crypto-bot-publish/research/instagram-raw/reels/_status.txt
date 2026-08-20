@@ -1,0 +1,54 @@
+Da8E8_sDtBx    reel  rc=0   cues=0
+0  chars=539    frames=6
+DacDmnGsQsy    reel  rc=0   cues=0
+0  chars=214    frames=2
+Da4XlSfhtNo    reel  rc=0   cues=0
+0  chars=1091   frames=14
+Dasuyqan5n7    reel  rc=0   cues=0
+0  chars=181    frames=2
+DatQIOQTcwT    reel  rc=0   cues=0
+0  chars=309    frames=8
+Da0BA-GRGN1    reel  rc=0   cues=0
+0  chars=301    frames=8
+DXZX8JYDZZt    reel  rc=1   cues=0    chars=0      frames=0
+Dau64tdyY4n    reel  rc=0   cues=0
+0  chars=471    frames=3
+DYSAzzpAZH9    reel  rc=1   cues=0    chars=0      frames=0
+DVaB4VAEhMf    reel  rc=0   cues=0
+0  chars=1579   frames=29
+Dak-8k6oNeA    reel  rc=0   cues=0
+0  chars=1999   frames=26
+DaTsmSOzl3c    reel  rc=0   cues=0
+0  chars=189    frames=5
+DW4yP9HgWv-    reel  rc=0   cues=0
+0  chars=1429   frames=24
+DYW1yX6AIKX    reel  rc=0   cues=0
+0  chars=1264   frames=17
+DYNEuorDrLy    reel  rc=1   cues=0    chars=0      frames=0
+DYU0dMcpBFP    reel  rc=0   cues=0
+0  chars=656    frames=11
+DZ2eqaZInfk    reel  rc=0   cues=0
+0  chars=2087   frames=41
+DVRWC25DDid    reel  rc=0   cues=0
+0  chars=716    frames=11
+DZ9xV72I54p    reel  rc=0   cues=0
+0  chars=1465   frames=28
+DZ7bTCtoc3s    reel  rc=0   cues=0
+0  chars=2328   frames=46
+DV_w-fRDEGI    reel  rc=0   cues=0
+0  chars=1079   frames=16
+DZ7lPp6slQl    reel  rc=0   cues=0
+0  chars=206    frames=3
+DZwTzBwhHXS    reel  rc=0   cues=0
+0  chars=313    frames=6
+DT1WyeYjEnL    reel  rc=1   cues=0    chars=0      frames=0
+Da0EeF1DTZ-    b1    rc=1   cues=0    chars=0      frames=0
+DYB671CtuaQ    b1    rc=0   cues=0
+0  chars=1773   frames=37
+Da_kNEjNt9f    b1    rc=0   cues=0
+0  chars=300    frames=2
+Da1XG9qgd4E    b1    rc=0   cues=0
+0  chars=2803   frames=55
+DaqrnR3j8oM    b1    rc=1   cues=0    chars=0      frames=0
+DatgKiljpXS    b1    rc=1   cues=0    chars=0      frames=0
+DONE 53 processed

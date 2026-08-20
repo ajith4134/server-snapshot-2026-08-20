@@ -1,0 +1,13 @@
+· reading metadata …
+  Video by nexural.io  (00:00)
+  -> /tmp/claude-1001/-home-anushadudekula71/0a15b275-e446-4894-8c28-f6b077d94775/scratchpad/reels/Dasuyqan5n7
+· fetching transcript …
+  ! no captions published — falling back to local Whisper
+  · running whisper (small) — this can take a while on long videos
+  · whisper detected language: en
+  1 cues, 179 chars  (source: whisper:small)
+· extracting frames …
+  2 frames
+
+✓ done → /tmp/claude-1001/-home-anushadudekula71/0a15b275-e446-4894-8c28-f6b077d94775/scratchpad/reels/Dasuyqan5n7
+  transcript.md · frames/ · meta.json · README.md

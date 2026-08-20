@@ -1,0 +1,23 @@
+I built an AI hedge fund with Claude Fable… and it works like an actual investment committee. 🤯📈
+
+Instead of one bot making random trades, the system has different agents for every step:
+
+🔎 Research
+💬 Bull vs. bear debate
+📊 Backtesting
+🛡️ Risk control
+🧪 Paper trading
+
+Every idea gets researched, challenged, tested, and risk-checked before it can move forward.
+
+The best part? It’s built with Claude Fable + open-source GitHub tools.
+
+No blind execution.
+No fake guarantees.
+No real money until the system proves itself in simulation.
+
+Comment “FUND” and I’ll send you the full setup, agent structure, and tools. 👇
+
+Follow @seb.ai for daily AI trading systems, Claude workflows, agents, and open-source builds.
+
+#claudefable #aiagents #aitrading #github #automation

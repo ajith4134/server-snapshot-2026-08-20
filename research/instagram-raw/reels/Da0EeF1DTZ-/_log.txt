@@ -1,0 +1,5 @@
+· reading metadata …
+ERROR: could not read video metadata.
+ERROR: [Instagram] DaycFRhDfmc: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+ERROR: [Instagram] DaycFRmDbCB: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template. Confirm you are on the latest version using  yt-dlp -U
+ERROR: [Instagram] DaycFRkjfZI: No video formats found!; please report this issue on  https://github.com/yt-dlp/yt-dlp/issues?q= , filling o

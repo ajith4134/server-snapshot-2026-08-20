@@ -1,0 +1,294 @@
+# Paper Execution Engine — design
+
+Date: 2026-08-08
+Status: **design, pending review.** No code written.
+Preceded by: `2026-08-08-final-project-goal-design.md`, the execution-layer floor (`832adef`).
+
+## Why this exists
+
+`ARCHITECTURE.md:92` states that *"paper mode manufactures edge"* — that is the failure this
+design is written against, not a risk it mentions in passing. Every decision below is chosen
+to make an optimistic assumption impossible to hold silently.
+
+The engine is also the missing consumer for two things already built and unwired:
+
+- the **Holdout Custodian** (`src/validation/holdout_custodian.py`) has had no reader
+  attached to it. `ClockGatedReader.__init__` takes `custodian` as an *optional* argument,
+  and its own docstring warns that a reader built without one is unguarded. The paper engine
+  is the first component that must always pass one.
+- the **execution floor** — `OrderIntentWal`, `Order`, `recover_and_reconcile` — has had no
+  transport. This design supplies one that is purely local.
+
+Ledger rows this touches: EX-004 (order types, partial), EX-007 (maker-vs-taker per order),
+EX-013 (strategy-facing cost gate), EX-017 (queueing / maker fill probability, partial),
+VX-012 (shadow alignment), VX-014 (backtest-vs-live divergence), VX-125 (shadow deployment),
+SP-054 (paper-wallet fill fidelity — design-only in every prior repo, never built).
+
+## Decisions taken (interview, 2026-08-08)
+
+| Question | Decision |
+|---|---|
+| What does it run on first? | **Tiered.** Discovery across every symbol the tape can build — 746 today, see the tier section for why that is not the 2,123 captured — on top-of-book + the cost engine; finalists re-run on real 20-level depth (BTC/ETH/SOL). |
+| Replay or forward? | **Both.** On-demand replay over the bitemporal archive, plus a long-running forward supervisor alongside capture/store/offload. |
+| Maker fills, with no queue data? | **Score every strategy under both accountings.** Gate promotion on the pessimistic one; report the gap as a first-class output. |
+
+The third decision is a refinement of "maker only on trade-through", after the user asked for
+all options to be thought through. Three flaws in the plain version, and their fixes:
+
+1. **Trade-through is volume-blind.** One lot printing through a 100-lot resting order is not
+   a fill. Fill is capped at `min(remaining, volume_that_printed_through)`.
+2. **It still assumes you get all of that volume.** Others are in the queue. That needs a
+   participation rate, and an invented rate is exactly what manufactures edge — so it is
+   **calibrated from the depth archive** (resting size at the touch on BTC/ETH/SOL) and
+   carried as a receipted, declared number. "One day of depth is thin" was itself too
+   generous: measured 2026-08-08, the archive holds **52 snapshots per symbol per venue
+   covering 10:07–10:59 UTC — 52 minutes, not a day**, at roughly a 30-second cadence. A
+   measured starting point with recorded provenance still beats a round number, and the
+   receipt carries `n_observations` precisely so nobody mistakes 52 minutes for a calibration.
+3. **The maker-or-taker choice is avoidable.** Score both. The gap between them *is* VX-012's
+   "realized-vs-assumed fill gap" and VX-014's divergence signal. A strategy that survives
+   only under optimistic fills is the single most important fact about it, and this makes it
+   visible rather than buried inside one assumption.
+
+```
+                        optimistic            pessimistic
+resting BUY @ 100.00    maker, 2.0 bps        taker, 5.0 bps
+  trade prints 99.98    fill min(remaining,   cross the spread
+  size 40               40 x participation)   at the touch
+  no print through      unfilled              unfilled
+
+promotion gate  -> requires PASS on pessimistic
+execution risk  -> pessimistic minus optimistic, reported per strategy
+participation   -> calibrated from depth archive, receipted, default conservative
+```
+
+Fee rates above are the **verified** ones, not a fee page: `~/capture/fee-verification/latest.json`
+records binance perp maker 2.0 / taker 5.0 bps and hyperliquid 1.5 / 4.5 bps, fetched from
+signed endpoints at the account's own tier. Maker-both-legs is a 4 bps round-trip hurdle
+against taker's 10 — a bar 2.5x lower. That single assumption is the largest lever in the
+engine, which is why it is never taken unilaterally.
+
+Cost of scoring both: one extra cost accounting per fill (cheap), and a calibration job that
+must refuse when depth is absent rather than default silently.
+
+## Architecture — `src/paper/`
+
+The load-bearing idea: **the paper broker is a transport for the WAL already built.**
+
+`OrderIntentWal.submit(intent, transport, now_ns=None)` takes
+`transport: Callable[[OrderIntent, str], dict]` — exactly the callable a paper broker can be.
+So paper inherits, for free and without a parallel implementation:
+
+- deterministic idempotency (`derive_client_order_id`, sha256 over every distinguishing field)
+- write-before-send durability (the `submitted` record is appended and fsynced first)
+- signal expiry (`IntentExpired` raised pre-write when `valid_for_ns` has closed)
+- the unknown-outcome path (a transport that raises leaves `outcome=unknown`, the only state
+  that prompts a query rather than a resend)
+
+This is `ARCHITECTURE.md`'s "same code path across backtest/paper/live" made literal: paper
+exercises the code a live transport would, rather than a simulator beside it.
+
+| Component | Responsibility | Depends on |
+|---|---|---|
+| `fill_model.py` | Pure. (resting order, market events, participation) → fills under **both** accountings | nothing |
+| `participation_calibration.py` | Measures capture fraction from the depth archive; **refuses** when depth absent; writes a receipt | `store`, `cost` |
+| `paper_broker.py` | The WAL transport. Registers resting orders, applies fills via `Order.fill()` | `order_lifecycle`, `fill_model` |
+| `market_replay.py` | Feeds events from `ClockGatedReader` — simulated clock for replay, wall clock forward. One door | `store` |
+| `position_book.py` | The local position model; supplies `local_positions` to `state_recovery` | `order_lifecycle` |
+| `scripts/paper_supervisor.sh` | The forward process, alongside capture/store/offload | all |
+
+`fill_model.py` is pure on purpose: it is the one component whose invariant must be provable
+by property test, and a pure function of (order, events, participation) is testable without a
+store, a clock, or a filesystem.
+
+## Data flow
+
+```
+strategy -> OrderIntent -> WAL.submit(intent, paper_broker)
+                              |  (durable + fsynced before the broker sees it)
+                              v
+                        paper_broker  <- market_replay <- ClockGatedReader(custodian)
+                              |                              (holdout sealed)
+                              v
+                        fill_model -> optimistic fills | pessimistic fills
+                              |
+                              v
+                     Order.fill() -> position_book -> cost engine (both accountings)
+                              |
+                              v
+                  TrialRegistry.evaluate -> promotion_gate (gated on pessimistic)
+                                            + fill-gap metric (VX-012/VX-014)
+```
+
+Note the reader is constructed **with** a custodian, always. `ClockGatedReader.read_as_of`
+calls `custodian.assert_readable(sim_clock_ns)` before touching any data, so a refused query
+never loads the rows it was refused.
+
+## The two tiers, and what tier 1 honestly cannot do
+
+**Tier 1 — 2,109 symbols today, from 2026-08-08 09:00 UTC.** Trades and book ticker, no depth.
+`impact_bps` in `src/cost/spread_and_depth.py` **refuses** rather than extrapolating, and
+`quote_round_trip_cost` returns `CostRefused` rather than a number. That behaviour is
+inherited, not re-implemented.
+
+Both of those numbers were wrong when this document was written, and the errors ran in the
+flattering direction — a wider universe over a longer history than exists. Corrected against
+the archive on 2026-08-08:
+
+| | captured | buildable into bars | note |
+|---|---|---|---|
+| binance perp | 569 | **569** | |
+| hyperliquid | 177 | **177** | |
+| binance spot | 1,363 | **1,363** | unbuildable until 2026-08-08; `_TRADE_STREAMS` mapped only two venues |
+| **total** | **2,109** | **2,109** | |
+
+**2,123 was a capture figure being used as a discovery figure**, and at the time it was
+written only 746 of those symbols could be built at all — binance spot was absent from
+`_TRADE_STREAMS` in `src/store/cli.py`, so 1,363 captured symbols were unreadable and nothing
+said so. Spot was registered the same day; its frames needed no new extractor, sharing the
+futures shape exactly in the five fields the extractor reads. Measured after: 1,354 spot
+symbols build in 64.7s and 495 MB for five hours of tape, producing 131,170 bars.
+
+**Spot and perp share symbol strings and are not the same instrument.** BTCUSDT is listed on
+both, at different prices and different fees. `build_bars` keys on (symbol, venue, bar) and
+`ClockGatedReader` de-duplicates on (symbol, venue, event_time), so they stay distinct — but
+only because the venue is carried rather than normalised away. Verified through the reader on
+real data: 588 perp bars and 268 spot bars for BTCUSDT, closing at 64,965.90 and 65,026.79.
+
+**Not all of spot is denominated in dollars. Settled 2026-08-08: filter to dollar quotes.**
+Read from the venues' own `quoteAsset` and recorded point-in-time into the universe snapshot,
+then classified by `store.quote_currency`:
+
+| venue | listed | dollar-quoted | non-dollar | unclassified |
+|---|---|---|---|---|
+| binance perp | 569 | **566** | 3 (`U`×2, BTC×1) | 0 |
+| binance spot | 1,377 | **838** | 539 (TRY 312, `U` 46, BTC 41, EUR 29, IDR 29, JPY 27, BRL 18, ETH 12, BNB 9, …) | 0 |
+| hyperliquid | 177 | **177** | 0 | 0 |
+
+A TRY-quoted pair's returns carry Turkish lira moves and a BTC-quoted pair's carry bitcoin's,
+so a dollar P&L over either measures something nobody asked about. Conversion was rejected:
+it needs an FX rate the archive does not capture, and a wrong rate corrupts a P&L silently,
+where an excluded pair is merely absent.
+
+**The filter is applied where symbols are selected, never where bars are built.** Bars are
+cheap and the raw they come from is evicted after seven days, so a symbol filtered out at build
+time can never be built. A pair excluded from selection can be admitted tomorrow by changing
+one frozenset.
+
+**The quote currency is never parsed out of the symbol string**, and that is a measurement, not
+a preference. Live 2026-08-08: `BTCU` is BTC quoted in `U` — a real quote asset on 46 spot pairs
+and 2 perpetuals — `XRPRLUSD` is quoted in `RLUSD`, which a longest-suffix rule holding `USD`
+reads as a pair that does not exist, and `EUREURI` is EUR quoted in `EURI`. Adding `U` to a
+suffix table makes every symbol ending in U ambiguous.
+
+Two states, not one, for a quote asset nobody has classified: `unknown` is its own reported
+count, so a new Binance stablecoin is visible rather than silently shrinking the universe on
+the day it lists. Zero today, and printed anyway.
+
+**And the history is hours, not days.** Broad capture began at 09:00 UTC on 2026-08-08; every
+day before it holds three symbols per venue and no spot at all. "Since Aug 3" described a
+five-day tape that does not exist. Bars are also buildable only for closed days, so the first
+buildable broad-universe day is Aug 8, available on Aug 9.
+
+Consequence, stated plainly: **tier 1 cannot price impact.** So it refuses order sizes above a
+declared fraction of observed trade volume instead of pretending to fill them. Discovery at
+this tier answers "is there a signal at all", never "what would it have earned at size" — and
+until the tape is long enough to hold a purged, embargoed split, it cannot honestly answer the
+first question either.
+
+**Tier 2 — BTC/ETH/SOL, depth archive.** Real 20-level depth, so impact is priced and the
+shadow stage's execution-quality metrics become measurable. Finalists only.
+
+## Error handling — all refusals, no defaults
+
+| Condition | Behaviour |
+|---|---|
+| No depth, size too large | `CostRefused` propagates; the signal is recorded as refused, not silently skipped |
+| Participation uncalibrated | conservative default **plus** an `uncalibrated` flag on the result; tier-2 promotion requires calibration |
+| Venue halted (`VenueHaltRegistry`) | no fills, positions frozen |
+| Kill file present (`watchdog.is_killed`) | engine refuses to start |
+| Replay touches the sealed holdout | `HoldoutSealed` from the reader |
+| Fill arrives on a terminal order | `InvalidTransition` from `Order.fill()` — raised, never tolerated |
+
+`CostRefused.__float__` raises by design; nothing in this engine may reach for a number on a
+refusal and find one.
+
+## Testing
+
+**The load-bearing invariant, as a property test: pessimistic P&L ≤ optimistic P&L, always,**
+for every strategy and every event sequence. A violation means the two accountings have
+diverged such that the "optimistic" path is conservative somewhere — and the entire promotion
+argument, which rests on gating the pessimistic number, collapses.
+
+Alongside it:
+
+- never fill more than the volume that printed through
+- never fill without a print
+- hand-computed expected fills over synthetic event sequences (the arithmetic checked by hand,
+  not by the code under test)
+- a replay whose clock enters the sealed holdout raises `HoldoutSealed` and reads nothing
+- an intent submitted twice raises rather than producing a second order
+- calibration with no depth present **refuses** and writes no receipt
+
+TDD per the standing rule: test first, watched failing, then the minimal code.
+
+## Status wall (Rule 8)
+
+Two tiles, both measured, neither asserted:
+
+- **paper engine** — reads the supervisor's own heartbeat and last-processed event time.
+  `NOT BUILT` until the process has run; never green from the presence of the code.
+- **participation calibration** — reads the receipt. `NOT MEASURED` when absent, with the
+  depth-coverage window and measurement timestamp shown when present.
+
+## Scope boundary
+
+No live transport, no credentials, no network. `paper_broker` is a pure local object. The
+existence of verified fee data does not make this engine able to trade, and nothing here is a
+step toward placing an order — that remains an explicit, separately-authorised decision.
+
+## Open, and deliberately not decided here
+
+1. **Participation default when uncalibrated** — a number is needed; the honest one is
+   conservative, but "conservative" needs a value. Proposed at build time from the calibration
+   run's own lower bound, not chosen now.
+2. **Declared volume fraction for tier-1 size refusal** — same shape; wants the trade-volume
+   distribution measured before a fraction is picked.
+3. **Forward-supervisor cadence** — event-driven off the capture feed vs a fixed tick. Affects
+   ops cost more than correctness.
+4. ~~**Which spot pairs discovery accepts**~~ — **settled 2026-08-08: filter to dollar quotes**,
+   read from the venue's `quoteAsset` and recorded point-in-time. Figures and the reason
+   conversion was rejected are in the tier-1 section above.
+5. ~~**Whether the supervisor builds the broad universe**~~ — **settled 2026-08-08: switched on.**
+   `scripts/store_supervisor.sh` now passes `--symbols ALL`, and `store.cli` reads the symbol
+   list off the archive rather than off a hand-written constant. Measured on the real archive,
+   12 closed hours of 2026-08-08, batches of five:
+
+   | venue | symbols | bars | wall | peak RSS |
+   |---|---|---|---|---|
+   | hyperliquid | 177 | 63,247 | 6.9s | 201 MB |
+   | binance spot | 1,363 | 199,825 | 100.2s | 652 MB |
+   | binance perp | 569 | 216,191 | 547.6s | 3,012 MB |
+   | **total** | **2,109** | **479,263** | **10m 55s** | — |
+
+   36 MB of Parquet for those 12 hours. Peak RSS scales with tape length, not just symbol
+   count — 3.0 GB over 12 hours against 2.7 GB over 5 — so a full day should be expected
+   nearer 6 GB. The box has 30 GB with 23 GB available beside three running captures, and no
+   swap, so it fits; a longer day or a fourth venue is what would make `--batch-size` need
+   lowering. The first pass of a day pays this once and every later pass refuses before
+   reading.
+
+   What was wrong before it was switched on: capture subscribed 2,098 symbols and the
+   supervisor asked for 9, so 99.6% of the tape was archived and never became a bar — and the
+   raw is evicted after seven days, so those days cannot be recovered by fixing a list later.
+
+## Review checkpoint
+
+This document is the deliverable of the brainstorming phase. **Nothing is implemented.**
+Next step is the user's review of this design; code begins only after it.
+
+**Amended 2026-08-08**, after `fill_model` and `participation_calibration` were built: the
+tier-1 symbol count, the length of the trade history, and the size of the depth archive were
+all wrong here, and all three overstated what the archive holds. Corrections are in place above
+and marked as corrections rather than silently rewritten — a spec whose errors vanish teaches
+nothing about which claims to check next time. Nothing else in the design changed.

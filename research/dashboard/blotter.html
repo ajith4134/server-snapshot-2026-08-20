@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Paper blotter — open and closed trades</title>
+<style>
+  :root { color-scheme: dark;
+    --ground:#080D11; --panel:#0F171D; --rule:#1E2C35;
+    --ink:#E8F0F4; --ink-2:#93A7B3; --ink-3:#61737E;
+    --win:#3FD68A; --loss:#F2707A; --warn:#E8B44F; --fail:#F2707A;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  @media (prefers-color-scheme: light) {
+    :root { --ground:#EDF1F4; --panel:#FFF; --rule:#D6DFE5;
+      --ink:#0B1418; --ink-2:#465761; --ink-3:#6D808B;
+      --win:#12764A; --loss:#B4232F; --warn:#8A6100; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--sans); line-height:1.5; padding:clamp(16px,4vw,40px); }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .kicker { font-family:var(--mono); font-size:11px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--ink-3); }
+  h1 { margin:6px 0 4px; font-size:clamp(22px,4vw,30px); letter-spacing:-.02em; }
+  h2 { margin:34px 0 10px; font-size:17px; letter-spacing:-.01em;
+    display:flex; align-items:baseline; gap:10px; }
+  .count { font-family:var(--mono); font-size:13px; color:var(--ink-3); }
+  .sub { margin:0 0 8px; color:var(--ink-2); font-size:14px; }
+  .banner { background:var(--panel); border:1px solid var(--rule);
+    border-left:3px solid var(--ink-3); border-radius:4px; padding:12px 15px;
+    margin:12px 0; font-size:13.5px; color:var(--ink-2); }
+  .banner.warn { border-left-color:var(--warn); }
+  .banner.fail { border-left-color:var(--fail); }
+  .banner strong { color:var(--ink); }
+  .note { color:var(--ink-3); font-size:12.5px; margin:6px 0; }
+  .totals { display:flex; gap:26px; flex-wrap:wrap; margin:12px 0; }
+  .totals .k { display:block; font-family:var(--mono); font-size:10.5px;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); }
+  .totals .v { font-family:var(--mono); font-size:18px; }
+  .scroll { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; font-size:13px;
+    background:var(--panel); border:1px solid var(--rule); border-radius:4px; }
+  th, td { text-align:left; padding:7px 11px; border-bottom:1px solid var(--rule);
+    white-space:nowrap; }
+  th { font-family:var(--mono); font-size:10.5px; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-3); font-weight:500; }
+  tr:last-child td { border-bottom:none; }
+  td.n { font-family:var(--mono); text-align:right; }
+  td.sym { font-weight:600; }
+  td.dim, .dim { color:var(--ink-3); }
+  td.side { font-family:var(--mono); font-size:11.5px; }
+  td.side.buy { color:var(--win); }
+  td.side.sell { color:var(--loss); }
+  td.win { color:var(--win); }
+  td.loss { color:var(--loss); }
+  .unknown { font-family:var(--mono); font-size:11px; color:var(--warn); }
+  code { font-family:var(--mono); font-size:.92em; }
+  footer { margin-top:34px; color:var(--ink-3); font-size:12px; }
+</style></head>
+<body><div class="wrap">
+  <div class="kicker">Paper trading</div>
+  <h1>Blotter — open and closed trades</h1>
+  <p class="sub">15907 fill(s), 459 open position(s), 12 closed trade(s); realised -0.090048 optimistic against -0.094340 pessimistic. The running strategy makes NO EDGE CLAIM, so none of this is performance.</p>
+  
+<div id="staleness" class="staleness staleness-unknown"
+     data-generated="1787205541"
+     data-stale-after="900">
+  <!-- Server-rendered fallback. If the script does not run, this is what shows:
+       it names the generation instant and admits the age is unknown, which is
+       the honest state for a page that cannot measure itself. It is deliberately
+       NOT the healthy styling. -->
+  AGE UNKNOWN — this page was generated at
+  <span class="staleness-when">2026-08-20 05:59 UTC</span> and could not measure how long
+  ago that was
+</div>
+<style>
+  .staleness { display:block; margin:0 0 18px; padding:10px 14px;
+    border-radius:8px; font-size:12px; letter-spacing:.04em;
+    border:1px solid var(--rule); background:var(--panel); color:var(--ink-2); }
+  .staleness-unknown { border-color:var(--warn); color:var(--warn); }
+  .staleness-fresh { border-color:var(--rule); color:var(--ink-3); }
+  .staleness-stale { border-color:var(--fail); color:var(--fail);
+    font-weight:600; }
+</style>
+<script>
+(function () {
+  var node = document.getElementById('staleness');
+  if (!node) return;
+  var generated = parseInt(node.getAttribute('data-generated'), 10);
+  var staleAfter = parseInt(node.getAttribute('data-stale-after'), 10);
+  if (!generated) return;
+
+  function describe(seconds) {
+    if (seconds < 90) return Math.max(0, Math.round(seconds)) + 's';
+    if (seconds < 5400) return Math.round(seconds / 60) + ' min';
+    if (seconds < 172800) return (seconds / 3600).toFixed(1) + 'h';
+    return (seconds / 86400).toFixed(1) + ' days';
+  }
+
+  function paint() {
+    var age = (Date.now() / 1000) - generated;
+    node.className = 'staleness ' + (age > staleAfter ? 'staleness-stale'
+                                                      : 'staleness-fresh');
+    if (age > staleAfter) {
+      // Named as a broken generator rather than as an old page, because that is
+      // the thing to go and fix, and it is what nobody worked out for five days.
+      node.textContent = 'STALE — this board is ' + describe(age) + ' old. '
+        + 'The generator has stopped writing it; what you are reading is not '
+        + 'the current state of the system.';
+    } else {
+      node.textContent = 'live — regenerated ' + describe(age) + ' ago';
+    }
+  }
+
+  paint();
+  // Repainted while the tab sits open, so a board left on a second monitor goes
+  // red by itself instead of staying green until someone reloads it.
+  setInterval(paint, 15000);
+})();
+</script>
+
+  <div class="scroll">
+    <div class='banner warn'><strong>The running strategy makes no edge claim.</strong> <code>makes_edge_claim</code> is false on every fill, so nothing on this page is performance — it is proof that the plumbing carries an order end to end.</div><div class='banner warn'>All 14,408 fill(s) carry <code>uncalibrated=true</code>: the fill prices rest on a <em>declared</em> participation rate, not a measured one. No tier-2 promotion may read them.</div>
+    <h2>Open positions <span class='count'>459</span></h2>
+    <div class='banner warn'>459 of 459 position(s) have no mark price, so their unrealised P&amp;L is <strong>unknown, not zero</strong>. Marking against a stale price would report a number about a market that has moved.</div><p class='note'>Showing the 60 largest by notional of 459; 399 not shown.</p>
+    <table>
+      <thead><tr>
+        <th>Symbol</th><th>Venue</th><th>Side</th><th>Qty</th>
+        <th>Avg entry (opt)</th><th>Avg entry (pess)</th>
+        <th>Unrealised optimistic</th><th>Unrealised pessimistic</th><th>Fills</th>
+      </tr></thead>
+      <tbody><tr><td class='sym'>BTCUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.073000</td><td class='n'>63,128.46712329</td><td class='n'>63,132.23835616</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>73</td></tr><tr><td class='sym'>BTC</td><td class='dim'>hyperliquid</td><td class='side buy'>BUY</td><td class='n'>0.064000</td><td class='n'>63,220.29687500</td><td class='n'>63,224.29687500</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>64</td></tr><tr><td class='sym'>ETHUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.103000</td><td class='n'>1,885.30601942</td><td class='n'>1,885.49961165</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>103</td></tr><tr><td class='sym'>ETH</td><td class='dim'>hyperliquid</td><td class='side buy'>BUY</td><td class='n'>0.088000</td><td class='n'>1,888.53522727</td><td class='n'>1,888.75568182</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>88</td></tr><tr><td class='sym'>PAXGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.024000</td><td class='n'>4,376.73500000</td><td class='n'>4,376.75333333</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>25</td></tr><tr><td class='sym'>XAUTUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.018000</td><td class='n'>4,360.38555556</td><td class='n'>4,360.40111111</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>18</td></tr><tr><td class='sym'>BTCUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>63,242.00000000</td><td class='n'>63,242.10000000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>1</td></tr><tr><td class='sym'>ZECUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.110000</td><td class='n'>489.24127273</td><td class='n'>489.33145455</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>110</td></tr><tr><td class='sym'>ZECUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.103000</td><td class='n'>488.37708738</td><td class='n'>488.43941748</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>103</td></tr><tr><td class='sym'>XMRUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.104000</td><td class='n'>409.61125000</td><td class='n'>409.85048077</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>104</td></tr><tr><td class='sym'>YFIUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.014000</td><td class='n'>1,951.50000000</td><td class='n'>1,952.00000000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>14</td></tr><tr><td class='sym'>TAOUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.058000</td><td class='n'>197.52931034</td><td class='n'>197.56568966</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>58</td></tr><tr><td class='sym'>SOL</td><td class='dim'>hyperliquid</td><td class='side buy'>BUY</td><td class='n'>0.123000</td><td class='n'>75.51706504</td><td class='n'>75.52554472</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>123</td></tr><tr><td class='sym'>HYPEUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.109000</td><td class='n'>57.10875229</td><td class='n'>57.12622018</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>109</td></tr><tr><td class='sym'>SOLUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.062000</td><td class='n'>75.51419355</td><td class='n'>75.52258065</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>62</td></tr><tr><td class='sym'>ETHUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>1,891.43000000</td><td class='n'>1,891.43000000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>1</td></tr><tr><td class='sym'>SOLUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.016000</td><td class='n'>75.49187500</td><td class='n'>75.49812500</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>16</td></tr><tr><td class='sym'>QNTUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.018000</td><td class='n'>57.71888889</td><td class='n'>57.72500000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>18</td></tr><tr><td class='sym'>AAVEUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.011000</td><td class='n'>86.91636364</td><td class='n'>86.93727273</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>11</td></tr><tr><td class='sym'>AAVEUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.011000</td><td class='n'>86.76909091</td><td class='n'>86.79181818</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>11</td></tr><tr><td class='sym'>GIGGLEUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.030000</td><td class='n'>30.59866667</td><td class='n'>30.60800000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>30</td></tr><tr><td class='sym'>LTCUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.018000</td><td class='n'>44.21500000</td><td class='n'>44.21888889</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>18</td></tr><tr><td class='sym'>LTCUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.016000</td><td class='n'>44.16500000</td><td class='n'>44.16625000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>16</td></tr><tr><td class='sym'>VVVUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.056000</td><td class='n'>11.98316071</td><td class='n'>11.98587500</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>56</td></tr><tr><td class='sym'>TRBUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.042000</td><td class='n'>13.24352381</td><td class='n'>13.24473810</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>42</td></tr><tr><td class='sym'>LINKUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.055000</td><td class='n'>9.56409091</td><td class='n'>9.56790909</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>55</td></tr><tr><td class='sym'>LINKUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.054000</td><td class='n'>9.55561111</td><td class='n'>9.55953704</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>54</td></tr><tr><td class='sym'>NMRUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.042000</td><td class='n'>8.09257143</td><td class='n'>8.09347619</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>42</td></tr><tr><td class='sym'>GMXUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.045000</td><td class='n'>6.67546667</td><td class='n'>6.67853333</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>45</td></tr><tr><td class='sym'>LITUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.085000</td><td class='n'>2.25557294</td><td class='n'>2.25673176</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>85</td></tr><tr><td class='sym'>ORDIUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.047000</td><td class='n'>3.46106383</td><td class='n'>3.46287234</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>47</td></tr><tr><td class='sym'>INJUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.030000</td><td class='n'>4.18390000</td><td class='n'>4.18456667</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>30</td></tr><tr><td class='sym'>ORDIUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.035000</td><td class='n'>3.46800000</td><td class='n'>3.46934286</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>35</td></tr><tr><td class='sym'>MORPHOUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.058000</td><td class='n'>1.96598276</td><td class='n'>1.96651207</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>58</td></tr><tr><td class='sym'>VELVETUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.125000</td><td class='n'>0.86866960</td><td class='n'>0.87146880</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>125</td></tr><tr><td class='sym'>PROMUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.044000</td><td class='n'>2.26388636</td><td class='n'>2.26561364</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>44</td></tr><tr><td class='sym'>ILVUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.029000</td><td class='n'>2.98479310</td><td class='n'>2.98634483</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>29</td></tr><tr><td class='sym'>ZENUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.021000</td><td class='n'>4.00342857</td><td class='n'>4.00361905</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>21</td></tr><tr><td class='sym'>PIEVERSEUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.098000</td><td class='n'>0.83338265</td><td class='n'>0.83371327</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>98</td></tr><tr><td class='sym'>PENDLEUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.059000</td><td class='n'>1.30742542</td><td class='n'>1.30761356</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>59</td></tr><tr><td class='sym'>UNIUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.022000</td><td class='n'>3.23695455</td><td class='n'>3.23745455</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>22</td></tr><tr><td class='sym'>AVAXUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.011000</td><td class='n'>6.40481818</td><td class='n'>6.40881818</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>11</td></tr><tr><td class='sym'>UNIUSDC</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.019000</td><td class='n'>3.22994737</td><td class='n'>3.23010526</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>19</td></tr><tr><td class='sym'>RIVERUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.022000</td><td class='n'>2.68218182</td><td class='n'>2.68277273</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>22</td></tr><tr><td class='sym'>OGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.023000</td><td class='n'>2.53408696</td><td class='n'>2.53460870</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>23</td></tr><tr><td class='sym'>MUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.049000</td><td class='n'>1.11355510</td><td class='n'>1.11374898</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>49</td></tr><tr><td class='sym'>SSVUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.025000</td><td class='n'>2.17100000</td><td class='n'>2.17248000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>25</td></tr><tr><td class='sym'>XVSUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.020000</td><td class='n'>2.69520000</td><td class='n'>2.69590000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>20</td></tr><tr><td class='sym'>ZROUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.064000</td><td class='n'>0.79148906</td><td class='n'>0.79174219</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>64</td></tr><tr><td class='sym'>FOLKSUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.023000</td><td class='n'>1.94100000</td><td class='n'>1.94226087</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>23</td></tr><tr><td class='sym'>KSMUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.015000</td><td class='n'>2.90200000</td><td class='n'>2.90240000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>15</td></tr><tr><td class='sym'>TRADOORUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.060000</td><td class='n'>0.63889500</td><td class='n'>0.63926833</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>60</td></tr><tr><td class='sym'>MOVRUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.046000</td><td class='n'>0.82786957</td><td class='n'>0.82958696</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>46</td></tr><tr><td class='sym'>METISUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.014000</td><td class='n'>2.40192857</td><td class='n'>2.40228571</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>14</td></tr><tr><td class='sym'>VANAUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.039000</td><td class='n'>0.86101538</td><td class='n'>0.86123333</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>39</td></tr><tr><td class='sym'>PRLUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.091000</td><td class='n'>0.36662308</td><td class='n'>0.36711648</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>91</td></tr><tr><td class='sym'>AUCTIONUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.011000</td><td class='n'>2.84045455</td><td class='n'>2.84100000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>11</td></tr><tr><td class='sym'>币安人生USDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.062000</td><td class='n'>0.49603871</td><td class='n'>0.49656000</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>62</td></tr><tr><td class='sym'>ICPUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.013000</td><td class='n'>2.26400000</td><td class='n'>2.26446154</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>13</td></tr><tr><td class='sym'>NEARUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.018000</td><td class='n'>1.63400000</td><td class='n'>1.63444444</td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n'><span class='unknown'>UNKNOWN</span></td><td class='n dim'>18</td></tr></tbody>
+    </table>
+    <h2>Closed round trips <span class='count'>12</span></h2>
+    
+    <div class='totals'>
+      <div><span class='k'>Realised, optimistic</span>
+           <span class='v'>-0.090048</span></div>
+      <div><span class='k'>Realised, pessimistic</span>
+           <span class='v'>-0.094340</span></div>
+    </div>
+    
+    <table>
+      <thead><tr>
+        <th>Symbol</th><th>Venue</th><th>Side</th><th>Qty</th>
+        <th>Entry (opt)</th><th>Exit (opt)</th>
+        <th>P&amp;L optimistic</th><th>P&amp;L pessimistic</th><th>Held</th>
+      </tr></thead>
+      <tbody><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09500000</td><td class='n'>0.09530000</td><td class='n win'>0.000000</td><td class='n win'>0.000000</td><td class='n dim'>0.4h</td></tr><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09530000</td><td class='n'>0.09530000</td><td class='n loss'>0.000000</td><td class='n loss'>0.000000</td><td class='n dim'>0.4h</td></tr><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09520000</td><td class='n'>0.09530000</td><td class='n win'>0.000000</td><td class='n loss'>0.000000</td><td class='n dim'>0.2h</td></tr><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09520000</td><td class='n'>0.09530000</td><td class='n win'>0.000000</td><td class='n loss'>0.000000</td><td class='n dim'>0.2h</td></tr><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09520000</td><td class='n'>0.09530000</td><td class='n win'>0.000000</td><td class='n loss'>0.000000</td><td class='n dim'>0.1h</td></tr><tr><td class='sym'>1000000MOGUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>0.09540000</td><td class='n'>0.09530000</td><td class='n loss'>-0.000000</td><td class='n loss'>-0.000000</td><td class='n dim'>0.0h</td></tr><tr><td class='sym'>ARUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>1.80800000</td><td class='n'>1.81100000</td><td class='n win'>0.000003</td><td class='n win'>0.000001</td><td class='n dim'>0.2h</td></tr><tr><td class='sym'>ARUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>1.81200000</td><td class='n'>1.81100000</td><td class='n loss'>-0.000001</td><td class='n loss'>-0.000001</td><td class='n dim'>0.1h</td></tr><tr><td class='sym'>BTC</td><td class='dim'>hyperliquid</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>63,085.00000000</td><td class='n'>63,037.00000000</td><td class='n loss'>-0.048000</td><td class='n loss'>-0.049000</td><td class='n dim'>19.7h</td></tr><tr><td class='sym'>BTCUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>63,074.90000000</td><td class='n'>63,038.00000000</td><td class='n loss'>-0.036900</td><td class='n loss'>-0.040000</td><td class='n dim'>19.7h</td></tr><tr><td class='sym'>ETHUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>1,884.91000000</td><td class='n'>1,880.04000000</td><td class='n loss'>-0.004870</td><td class='n loss'>-0.005040</td><td class='n dim'>19.6h</td></tr><tr><td class='sym'>SOLUSDT</td><td class='dim'>binance</td><td class='side buy'>BUY</td><td class='n'>0.001000</td><td class='n'>75.56000000</td><td class='n'>75.28000000</td><td class='n loss'>-0.000280</td><td class='n loss'>-0.000300</td><td class='n dim'>19.6h</td></tr></tbody>
+    </table></div>
+  <footer>
+    Generated 2026-08-20 05:59 UTC from the forward engine's own fill
+    journal by <code>statuswall.blotter_page</code>. Every figure is read from
+    <code>paper/forward/fills-*.ndjson</code>; nothing here is typed and nothing
+    is derived. Round trips are paired FIFO per (venue, symbol) — a convention,
+    stated because it changes the P&amp;L of every partially-closed position.
+  </footer>
+</div></body></html>

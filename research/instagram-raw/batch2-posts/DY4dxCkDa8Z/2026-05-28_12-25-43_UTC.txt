@@ -1,0 +1,16 @@
+Comment «STACK» for the article.
+
+Five Python libraries that quietly do the heavy lifting in quant finance, and what each one is actually for.
+
+Diffrax solves SDEs with full autodiff. py-pde gives you finite-difference PDEs in five lines. CVXPY turns convex portfolio problems into something that reads like the math. NumPyro samples posteriors with NUTS on top of JAX. FinancePy has the derivatives stack already built and pinned to textbook conventions.
+
+I’ll DM you the article: 
+→ a walkthrough of all five, library by library 
+→ the math each one is built on, kept short 
+→ working Python you can paste into a notebook
+
+No one of these solves quant finance. Together they cover most of the math you’d actually want to reach for, without rewriting solvers from scratch.
+
+Comment «STACK» for the article
+
+#quantfinance #quant #trading #algotrading #mathematics

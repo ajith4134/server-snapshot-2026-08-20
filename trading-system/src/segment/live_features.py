@@ -1,0 +1,427 @@
+"""BF-02: the live feature frame — what the brains read, computed from the ticks a poll delivered.
+
+## Rolling state, and why it lives here rather than in the feed
+
+A single poll cannot produce a return or a realized volatility; both need a history.
+The feed is deliberately stateless past its buffer — it hands over ticks and forgets
+them — so the memory lives here, one small ring per symbol.
+
+That placement matters for a reason beyond tidiness: a bot restarting must not
+inherit a stale view of the market. This state is in-process and dies with the
+engine, so a restarted bot has NO features until it has watched live ticks for its
+warm-up window, and it refuses to trade during it. The alternative — priming from the
+store — is the exact thing RL-024 forbids, and it would let a bot's first trades after
+every restart be taken on hours-old prices.
+
+## A refusal names what was missing; nothing is defaulted
+
+Repo rule, and `perp.tradable_universe` already works this way: a missing or stale
+input produces a refusal naming what was missing rather than a default. A zero
+spread, an assumed mid, a volatility of 0.0 standing in for "not enough samples" —
+each is a number that reads as information and is not. `FrameRefused` carries the list.
+
+The specific trap: a feature frame that quietly returns zeros makes every brain
+decline for reasons that look like market conditions, and the bot goes quiet while
+every log line reads normal.
+
+## Order flow imbalance needs the taker side, and the sign is easy to get backwards
+
+Binance sends `m` = is-buyer-maker. `m` true means the resting order was the buyer,
+so the AGGRESSOR was a seller. `live.live_feed` resolves that once, into
+`extra["taker_side"]`, and nothing downstream re-derives it. Inverting this sign
+produces a feature that is exactly as strong as the correct one and points the wrong
+way, which backtests beautifully and loses money live.
+"""
+from __future__ import annotations
+
+import math
+from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from decimal import Decimal
+
+# How many mid observations a symbol needs before a return or a volatility is
+# reported. Below this the frame refuses rather than reporting a number computed from
+# two points, which is a number with no error bar wearing the same units as one that has.
+MIN_SAMPLES = 12
+
+# The rolling window, IN TIME. Sixty seconds of live mid observations.
+#
+# **It was observation-counted first, and that was wrong in a way worth recording.**
+# A 120-observation window sounds venue-neutral and is the opposite: measured
+# 2026-08-18 on the live perp feed, `bookTicker` delivered ~2,750 updates in 30
+# seconds for ONE symbol, so 120 observations spanned about a tenth of a second.
+# Momentum over 0.1s is 0.0 to the precision of the quote, and the first live run of
+# the perp bot abstained on 81 of 81 decisions with `momentum: 0.0` and a realized
+# volatility of 1.5e-05. The same 120 observations on the 5-second Deribit poll would
+# have spanned ten minutes. One constant, two segments, two windows three orders of
+# magnitude apart - and neither is the window anybody intended.
+#
+# Time is what the thresholds in every brain are stated against, so time is what the
+# window is measured in.
+WINDOW_NS = 60_000_000_000
+# Ring capacity. Bounded by memory rather than by meaning - the window above decides
+# what is USED; this only decides how much can be held before the oldest is dropped.
+MAX_OBSERVATIONS = 400
+
+# **The minimum gap between two stored mid observations, per symbol.**
+#
+# Without it a wide universe cannot fit in memory. Measured 2026-08-18: `!bookTicker`
+# on binance futures delivers ~90 updates a second for a major, so an unthrottled
+# 60-second window holds ~5,400 points per symbol - across 1,361 spot pairs that is
+# millions of tuples held to compute a return over sixty seconds.
+#
+# At 250 ms a 60-second window holds at most 240 points, which is ample for a return
+# and for a standard deviation, and the whole spot universe costs a few hundred
+# thousand floats.
+#
+# **What this changes, stated rather than buried:** realized volatility measured on
+# 250 ms sampling is not the same number as volatility measured tick by tick - finer
+# sampling picks up more of the bid-ask bounce. It is a consistent choice across all
+# four segments and all symbols, `window_volatility` is what the brains and
+# PROFIT-TAIL compare against, and the sampling interval is published on every frame
+# so the number is never read without it.
+MIN_SAMPLE_GAP_NS = 250_000_000
+
+# One-minute bars, matching `bars_60000000000ns` - the dataset the models are
+# fitted on. The width is not a free parameter: change it and the live features
+# stop being the features the model learned.
+LIVE_BAR_NS = 60_000_000_000
+# How many completed bars to keep. `learn.training_set.FEATURE_WINDOW_BARS` is 60,
+# so this holds the window plus headroom for inspection.
+LIVE_BAR_HISTORY = 90
+
+
+@dataclass(frozen=True)
+class FrameRefused:
+    """The frame could not be computed, and this names what was missing."""
+
+    venue: str
+    symbol: str
+    missing: tuple[str, ...]
+    at_ns: int
+
+    def get(self, key, default=None):
+        """Frames are read with `.get`; a refusal answers every key with the default.
+
+        Deliberately NOT raising. A brain that asks a refused frame for a feature
+        gets None and declines naming it, which is the behaviour wanted; raising
+        would make one bad symbol take down a poll covering hundreds.
+        """
+        return default
+
+    @property
+    def is_refusal(self) -> bool:
+        return True
+
+
+class _SymbolState:
+    """The rolling memory for one instrument."""
+
+    __slots__ = ("mids", "last_trade", "buy_volume", "sell_volume", "trade_count",
+                 "last_quote_ns", "last_trade_ns", "bid", "ask", "bid_size", "ask_size",
+                 "extra", "bars", "bar_open_ns", "bar_open", "bar_high", "bar_low",
+                 "bar_close", "bar_volume", "bar_trades")
+
+    def __init__(self) -> None:
+        # (received_ns, mid). Timestamped so the window is a duration, not a count.
+        self.mids: deque = deque(maxlen=MAX_OBSERVATIONS)
+        self.last_trade: Decimal | None = None
+        self.buy_volume = Decimal(0)
+        self.sell_volume = Decimal(0)
+        self.trade_count = 0
+        self.last_quote_ns: int | None = None
+        self.last_trade_ns: int | None = None
+        self.bid: Decimal | None = None
+        self.ask: Decimal | None = None
+        self.bid_size: Decimal | None = None
+        self.ask_size: Decimal | None = None
+        self.extra: dict = {}
+        # **The one-minute bar series the LEARNED brains read.**
+        #
+        # `learn.training_set.compute_features` is fitted on one-minute bars from
+        # the store, and the same function is called live on these. That is not a
+        # convenience - it is the only thing that stops train/serve skew, where a
+        # model trained on one definition of "15-bar volatility" is served another
+        # and produces confident nonsense. One function, two callers, no second
+        # implementation to drift.
+        self.bars: deque = deque(maxlen=LIVE_BAR_HISTORY)
+        self.bar_open_ns: int | None = None
+        self.bar_open = None
+        self.bar_high = None
+        self.bar_low = None
+        self.bar_close = None
+        self.bar_volume = 0.0
+        self.bar_trades = 0.0
+
+
+@dataclass(frozen=True)
+class _SealedBar:
+    """A completed live bar, in the shape `learn.training_set` expects.
+
+    Structurally identical to `learn.training_set.MarketBar` and deliberately not
+    imported from it: `segment.live_features` is the live path and importing a
+    training module into it would make the trading loop depend on the training
+    stack. The field names are the contract, and a test asserts they match.
+    """
+
+    event_time_ns: int
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
+    trades: float
+
+
+class LiveFeatureFrames:
+    """Consumes each poll's ticks and answers with one frame per symbol.
+
+    `update()` then `frames()`, every poll. The two are separate because a poll may
+    deliver ticks for symbols the bot is not admitted to trade, and admission is
+    SB-01/DB-01/OB-01/PB-01's decision rather than this module's.
+    """
+
+    def __init__(self, *, segment: str, window_ns: int = WINDOW_NS,
+                 min_samples: int = MIN_SAMPLES,
+                 min_sample_gap_ns: int = MIN_SAMPLE_GAP_NS) -> None:
+        self.segment = segment
+        self._window_ns = window_ns
+        self._min_samples = min_samples
+        self._min_sample_gap_ns = min_sample_gap_ns
+        self._state: dict[tuple[str, str], _SymbolState] = defaultdict(_SymbolState)
+
+    def update(self, ticks) -> int:
+        """Fold a poll's ticks into the rolling state. Returns how many were used."""
+        used = 0
+        self_gap = self._min_sample_gap_ns
+        for tick in ticks:
+            state = self._state[(tick.venue, tick.symbol)]
+            if tick.bid is not None or tick.ask is not None:
+                if tick.bid is not None:
+                    state.bid = tick.bid
+                    state.bid_size = tick.bid_size
+                if tick.ask is not None:
+                    state.ask = tick.ask
+                    state.ask_size = tick.ask_size
+                state.last_quote_ns = tick.received_ns
+                mid = tick.mid
+                if mid is None and state.bid is not None and state.ask is not None:
+                    # The tick carried one side; the other is the last one seen. This
+                    # is a composed quote, not an invented one - both halves were
+                    # printed by the venue.
+                    if state.ask >= state.bid:
+                        mid = (state.bid + state.ask) / 2
+                if mid is not None:
+                    # Downsample: keep the FIRST observation in each gap rather than
+                    # the last, so a symbol's series advances at a steady cadence
+                    # instead of being pinned to whenever the last burst happened.
+                    if (not state.mids
+                            or tick.received_ns - state.mids[-1][0] >= self_gap):
+                        state.mids.append((tick.received_ns, float(mid)))
+                used += 1
+            if tick.price is not None:
+                state.last_trade = tick.price
+                state.last_trade_ns = tick.received_ns
+                state.trade_count += 1
+                quantity = tick.quantity or Decimal(0)
+                if tick.extra.get("taker_side") == "SELL":
+                    state.sell_volume += quantity
+                else:
+                    state.buy_volume += quantity
+                used += 1
+            if tick.extra:
+                state.extra.update(
+                    {k: v for k, v in tick.extra.items() if k != "taker_side"})
+            self._fold_into_bar(state, tick)
+        return used
+
+    @staticmethod
+    def _fold_into_bar(state, tick) -> None:
+        """Accumulate a tick into the open one-minute bar, sealing the last one.
+
+        Price is the trade print where there is one and the mid otherwise. A bar
+        built only from prints would be empty for every symbol that quotes without
+        trading - most of an option chain and most of the long tail - and a bar
+        built only from mids would ignore where trades actually happened.
+        """
+        price = tick.price
+        if price is None:
+            price = tick.mid
+        if price is None:
+            return
+        value = float(price)
+        bucket = (tick.received_ns // LIVE_BAR_NS) * LIVE_BAR_NS
+
+        if state.bar_open_ns is None:
+            state.bar_open_ns = bucket
+            state.bar_open = state.bar_high = state.bar_low = state.bar_close = value
+            state.bar_volume = 0.0
+            state.bar_trades = 0.0
+        elif bucket > state.bar_open_ns:
+            # Seal the completed bar. Only sealed bars are read by the feature
+            # function: a partially formed bar has a high and a low that are still
+            # moving, and a model fitted on completed bars would be served a
+            # different object under the same name.
+            state.bars.append(_SealedBar(
+                event_time_ns=state.bar_open_ns, open=state.bar_open,
+                high=state.bar_high, low=state.bar_low, close=state.bar_close,
+                volume=state.bar_volume, trades=state.bar_trades))
+            state.bar_open_ns = bucket
+            state.bar_open = state.bar_high = state.bar_low = state.bar_close = value
+            state.bar_volume = 0.0
+            state.bar_trades = 0.0
+        else:
+            state.bar_high = max(state.bar_high, value)
+            state.bar_low = min(state.bar_low, value)
+            state.bar_close = value
+
+        if tick.price is not None:
+            state.bar_trades += 1.0
+            state.bar_volume += float(tick.quantity or 0)
+
+    def symbols(self) -> tuple[tuple[str, str], ...]:
+        return tuple(self._state.keys())
+
+    def frame(self, venue: str, symbol: str, now_ns: int) -> dict | FrameRefused:
+        """One symbol's features, or a refusal naming what was missing."""
+        state = self._state.get((venue, symbol))
+        if state is None:
+            return FrameRefused(venue=venue, symbol=symbol,
+                                missing=("no_ticks_seen",), at_ns=now_ns)
+
+        # Only observations inside the window count. An instrument that stopped
+        # quoting keeps its old points in the ring and must NOT be able to produce a
+        # momentum from them - that would be a stale number wearing a live label.
+        cutoff = now_ns - self._window_ns
+        windowed = [mid for stamp, mid in state.mids if stamp >= cutoff]
+
+        missing = []
+        if state.bid is None or state.ask is None:
+            missing.append("two_sided_quote")
+        if len(windowed) < self._min_samples:
+            missing.append(f"samples({len(windowed)}<{self._min_samples})")
+        if missing:
+            return FrameRefused(venue=venue, symbol=symbol,
+                                missing=tuple(missing), at_ns=now_ns)
+
+        bid, ask = state.bid, state.ask
+        mid = (bid + ask) / 2
+        relative_spread = (ask - bid) / mid if mid > 0 else None
+
+        mids = windowed
+        returns = [
+            math.log(mids[i] / mids[i - 1])
+            for i in range(1, len(mids))
+            if mids[i] > 0 and mids[i - 1] > 0
+        ]
+        # Population standard deviation of log returns over the window. NOT
+        # annualised: every consumer here is intraday (RL-018) and an annualised
+        # number would have to be un-annualised by each of them, which is one
+        # conversion per caller and one chance each to get it wrong.
+        volatility = _stdev(returns)
+        # **Two volatilities, because one of them is not comparable to anything a
+        # brain reasons about.** `realized_volatility` above is the standard
+        # deviation of ONE observation's log return - on a feed delivering thousands
+        # of quote updates a minute that is ~1e-05, a number with no relationship to
+        # a 25 basis point take-profit.
+        #
+        # Measured 2026-08-18: PROFIT-TAIL compared exactly those two and computed a
+        # negative expectancy on every symbol of every poll, so the perp bot selected
+        # 9 trades and took none of them. The units were the whole bug.
+        #
+        # `window_volatility` is the movement over the WINDOW - per-observation sigma
+        # scaled by the root of the observation count. That is a fraction of price
+        # over a stated duration, which is what a take-profit and a spread also are,
+        # so the three can be compared without anybody converting anything.
+        window_volatility = volatility * math.sqrt(len(returns)) if returns else 0.0
+        # Return across the window: newest against the oldest still inside it.
+        momentum = (mids[-1] - mids[0]) / mids[0] if mids[0] > 0 else 0.0
+        window_span_ns = 0
+        if len(state.mids) >= 2:
+            inside = [stamp for stamp, _ in state.mids if stamp >= cutoff]
+            if len(inside) >= 2:
+                window_span_ns = inside[-1] - inside[0]
+
+        flow_total = state.buy_volume + state.sell_volume
+        order_flow_imbalance = (
+            float((state.buy_volume - state.sell_volume) / flow_total)
+            if flow_total > 0 else None)
+
+        quote_age_ns = (now_ns - state.last_quote_ns
+                        if state.last_quote_ns is not None else None)
+
+        return {
+            "segment": self.segment,
+            "venue": venue,
+            "symbol": symbol,
+            "at_ns": now_ns,
+            "bid": bid,
+            "ask": ask,
+            "mid": mid,
+            "last_trade": state.last_trade,
+            "relative_spread": relative_spread,
+            "realized_volatility": Decimal(str(volatility)),
+            "window_volatility": Decimal(str(window_volatility)),
+            "momentum": momentum,
+            "order_flow_imbalance": order_flow_imbalance,
+            "trade_count": state.trade_count,
+            "buy_volume": state.buy_volume,
+            "sell_volume": state.sell_volume,
+            "samples": len(mids),
+            # Published so a threshold can never be read against a window that was
+            # not the one it was stated for.
+            "window_span_ns": window_span_ns,
+            "window_ns": self._window_ns,
+            "sample_gap_ns": self._min_sample_gap_ns,
+            # How much of the learned brains' warm-up this symbol has completed.
+            "sealed_bars": len(state.bars),
+            "quote_age_ns": quote_age_ns,
+            "has_two_sided_quote": True,
+            # Whatever the venue sent that has no shared shape: an option's mark IV
+            # and underlying, a dated contract's delivery time and funding rate. The
+            # segment brains that need these know their keys.
+            **{f"venue_{k}": v for k, v in state.extra.items()},
+        }
+
+    def bar_window(self, venue: str, symbol: str, length: int):
+        """The last `length` sealed one-minute bars, or None if there are not enough.
+
+        None rather than a short window: `compute_features` is fitted on exactly
+        `FEATURE_WINDOW_BARS` bars, and handing it fewer would produce a feature
+        vector whose horizons mean something different from the ones the model
+        learned. A refusal is the honest answer during warm-up.
+        """
+        state = self._state.get((venue, symbol))
+        if state is None or len(state.bars) < length:
+            return None
+        return list(state.bars)[-length:]
+
+    def bars_held(self, venue: str, symbol: str) -> int:
+        state = self._state.get((venue, symbol))
+        return 0 if state is None else len(state.bars)
+
+    def frames(self, now_ns: int, only=None) -> dict:
+        """Every known symbol's frame, or just the admitted ones."""
+        keys = self.symbols() if only is None else tuple(only)
+        return {key: self.frame(key[0], key[1], now_ns) for key in keys}
+
+    def reset_flow(self) -> None:
+        """Clear the per-poll trade tallies.
+
+        Called by the engine after a poll so order-flow imbalance measures the recent
+        window rather than everything since the process started - a cumulative
+        imbalance converges to a constant and stops being a signal, slowly enough
+        that nothing looks broken.
+        """
+        for state in self._state.values():
+            state.buy_volume = Decimal(0)
+            state.sell_volume = Decimal(0)
+            state.trade_count = 0
+
+
+def _stdev(values) -> float:
+    if len(values) < 2:
+        return 0.0
+    mean = sum(values) / len(values)
+    variance = sum((v - mean) ** 2 for v in values) / len(values)
+    return math.sqrt(variance)

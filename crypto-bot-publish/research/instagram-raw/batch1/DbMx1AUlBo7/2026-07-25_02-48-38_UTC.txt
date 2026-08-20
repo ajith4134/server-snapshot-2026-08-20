@@ -1,0 +1,31 @@
+I built an AI hedge fund system with Claude Opus 5. 📈🤖
+
+Instead of relying on one prompt, the system uses multiple agents to research, challenge ideas, test strategies, manage risk, and review results.
+
+The workflow:
+
+RESEARCH → DEBATE → BACKTEST → RISK → EXECUTE → REVIEW
+
+Here’s what each part does:
+
+🔎 Research Agent scans market data, news, earnings, macro trends, and other public information.
+
+💬 Debate Agents challenge each idea from different angles before it moves forward.
+
+🧪 Backtesting Agent tests strategies against historical data.
+
+🛡️ Risk Agent checks position size, stop losses, drawdown limits, and portfolio exposure.
+
+📊 Portfolio Agent tracks performance and generates clear reports.
+
+The goal isn’t to blindly let AI trade.
+
+It’s to build a more disciplined research and testing system before risking real money.
+
+This is for education and research only, not financial advice. Historical results do not guarantee future performance. Always review the logic, test carefully, and start with paper trading.
+
+Comment “HEDGE” and I’ll send you the full setup, prompts, tools, and workflow. 👇
+
+Follow @seb.ai for daily AI systems and automations.
+
+#claude #claudeopus #claudecode #aihedgefund #aitrading

@@ -1,0 +1,360 @@
+"""Binance USDs-M perpetual futures. Spot is deliberately not captured - see spec 11 Q4."""
+from __future__ import annotations
+
+from capture.venues import ExtractedMeta, PollSpec, StreamSpec
+
+_WS_BASE = "wss://fstream.binance.com/stream?streams="
+_INSTRUMENTS_URL = "https://fapi.binance.com/fapi/v1/exchangeInfo"
+_PREMIUM_INDEX_URL = "https://fapi.binance.com/fapi/v1/premiumIndex"
+_DEPTH_SNAPSHOT_URL = "https://fapi.binance.com/fapi/v1/depth"
+
+# A depth diff is a changeset, not a book. Replaying `depthUpdate` frames into
+# an order book requires an initial full snapshot to apply them onto, and
+# without one the captured depth cannot be reconstructed at all - which is why
+# the cost engine had to refuse every spread and impact question.
+#
+# Cadence and size are a request-weight decision, measured 2026-08-08 from the
+# x-mbx-used-weight header rather than recalled: a limit=1000 snapshot costs 50
+# on spot against a per-minute budget in the thousands, while premiumIndex costs
+# 1. At the funding cadence of one per second the snapshot alone would spend the
+# entire budget, so it carries its own interval. One per minute per core symbol
+# also means every hourly file rotation contains several snapshots, so each hour
+# stays independently replayable.
+_DEPTH_SNAPSHOT_LIMIT = 1000
+_DEPTH_SNAPSHOT_INTERVAL_SECONDS = 60.0
+_DEPTH_SNAPSHOT_STREAM = "depthSnapshot"
+# Measured 2026-08-08 from x-mbx-used-weight, not recalled.
+_DEPTH_SNAPSHOT_WEIGHT = 50
+_PREMIUM_INDEX_WEIGHT = 1
+
+# Open interest, live form. No all-market variant exists for this endpoint, so
+# it is polled per symbol - see `open_interest_poll_specs` for the budget
+# arithmetic that sets the cadence.
+_OPEN_INTEREST_URL = "https://fapi.binance.com/fapi/v1/openInterest"
+_OPEN_INTEREST_STREAM = "openInterest"
+_OPEN_INTEREST_INTERVAL_SECONDS = 300.0
+# Measured 2026-08-09 from x-mbx-used-weight-1m on a live request, not assumed.
+_OPEN_INTEREST_WEIGHT = 1
+
+# `trade` rather than `aggTrade`, decided 2026-08-02 from live measurement:
+# aggTrade delivers nothing at all to this host over the websocket (0 frames in
+# 25s while depth and bookTicker flow normally, and REST /fapi/v1/aggTrades
+# returns data - so the venue has it and a subset of websocket streams is
+# silent). `trade` works, and it carries individual trades rather than
+# aggregated ones, which is strictly more raw and the better fit for this layer.
+# `markPrice@1s` was subscribed here until 2026-08-03 and removed after
+# measurement, not suspicion. From this host, across three separate fstream edge
+# IPs, it delivered zero frames in 35s while `trade` delivered 2001 on the same
+# sockets - and so did `!markPrice@arr@1s`, which Binance guarantees at 1 Hz.
+# The name is right (it matches Binance's own connector), the venue has the data
+# (REST /fapi/v1/premiumIndex returns it), and COIN-M pushes the identical
+# stream type normally. The feed now comes from `poll_specs` instead. Leaving
+# the subscription in place would report it silent forever and bury the source
+# that actually works.
+#
+# `forceOrder` stays, and the difference is deliberate: it is equally silent,
+# but `allForceOrders` was withdrawn from the public REST API, so there is no
+# replacement to move it to. An idle subscription costs nothing and is the only
+# way this system would notice the venue starting to deliver liquidations. Until
+# it does, the feed is genuinely unavailable and its tile is genuinely red.
+_CORE_CHANNELS = ["depth@100ms", "trade", "forceOrder"]
+_TAIL_CHANNELS = ["trade", "forceOrder"]
+
+# Sampled once a second. Request weight is 1 per symbol against a 2400/minute
+# budget, so three symbols spend 180/minute - the cadence is limited by what is
+# worth storing, not by the venue's ceiling.
+_POLL_STREAM = "premiumIndex"
+# The symbol a fan-out spec carries. It names the REQUEST, never a file: every
+# instrument in the response is written under its own symbol, and nothing is
+# ever filed under this. Chosen to match `--symbols ALL` so the two ends of the
+# pipeline read alike.
+_ALL_MARKET_SYMBOL = "ALL"
+# Measured from the venue's own x-mbx-used-weight header, not assumed: the
+# all-market premiumIndex is 10 against the per-symbol form's 1.
+_PREMIUM_INDEX_ALL_WEIGHT = 10
+# Sixty seconds, and it is a WRITE budget rather than a request budget.
+#
+# At one second this killed capture. Measured 2026-08-09 on the live recorder:
+# it crash-looped every ~120s on `ConnectionClosedError: no close frame received
+# or sent` - the websocket keepalive going unanswered because the event loop was
+# busy. The request is one call at weight 10, but the RESPONSE is 857
+# instruments, and each one is a file: 783 ms for the opens on the first tick,
+# then 857 appends a second, each of which fsyncs on its own flush cadence.
+#
+# This box has been here before. `4ba56eb` fixed an hour-boundary sweep that
+# "blocked the event loop for seconds on fsync", and the sweep's own docstring
+# records a recorder dying with a keepalive ping timeout for the same reason.
+# The lesson that did not transfer: what costs is not the poll, it is the writes
+# the poll fans out into.
+#
+# Sixty seconds is still sixty times finer than the 8-hourly settlement this
+# feed exists to record. Mark and index prices ride on the same response and do
+# move continuously - that resolution is what was traded away, deliberately,
+# because a feed that kills capture records nothing at all.
+_PREMIUM_INDEX_INTERVAL_SECONDS = 60.0
+
+# The stream name each event routes to. It must equal the `stream` on the
+# StreamSpec that subscribed to it (`channel.split("@")[0]`), or one logical
+# stream splits across two filenames. `aggTrade` stays mapped even though
+# nothing subscribes to it now, so an archive captured earlier still routes.
+_EVENT_TO_STREAM = {
+    "depthUpdate": "depth",
+    "trade": "trade",
+    "aggTrade": "aggTrade",
+    "markPriceUpdate": "markPrice",
+    "forceOrder": "forceOrder",
+}
+
+
+class BinanceVenue:
+    name = "binance"
+
+    # Measured 2026-08-08 against the live endpoint, not taken from the docs:
+    # 928 streams (16,338-byte URL) connect and deliver; 960 (16,886) return
+    # HTTP 414. The documented 1024-stream cap is unreachable because the
+    # request line dies first, and SUBSCRIBE over the socket - which would avoid
+    # the URL entirely - is rejected with 1008 policy violation on fstream.
+    # Full record: ~/research/binance-fstream-connection-limits.md
+    #
+    # 12,000 rather than something nearer the ceiling: the universe changes
+    # daily, and the day a batch of long-named tokens lists must not be the day
+    # capture discovers the limit. That headroom costs one extra connection.
+    max_url_bytes = 12_000
+
+    # Read by the recorder to pick a gap tracker. Futures chains depth updates
+    # on `pu == prev.u`; spot chains on `U == prev.u + 1`. BinanceDepthTracker
+    # handles both, and this is how it gets selected without the recorder
+    # matching on a venue name.
+    depth_is_binance_chained = True
+
+    def _specs(self, symbols: list[str], channels: list[str]) -> list[StreamSpec]:
+        return [
+            StreamSpec(self.name, channel.split("@")[0], symbol, f"{symbol.lower()}@{channel}")
+            for symbol in symbols
+            for channel in channels
+        ]
+
+    def core_specs(self, symbols: list[str]) -> list[StreamSpec]:
+        return self._specs(symbols, _CORE_CHANNELS)
+
+    def tail_specs(self, symbols: list[str]) -> list[StreamSpec]:
+        return self._specs(symbols, _TAIL_CHANNELS)
+
+    def poll_specs(self, symbols: list[str]) -> list[PollSpec]:
+        """The feeds this venue will not push.
+
+        Funding is fetched in the ALL-MARKET form and split per symbol on
+        arrival. This reverses an earlier decision, and the reasoning that
+        replaced it is worth keeping visible. The original read:
+
+            Per-symbol rather than the all-market form: omitting `symbol`
+            returns every perpetual on the venue at request weight 10, and
+            writing several hundred instruments to disk in order to read three
+            of them is not a raw archive of what was asked for.
+
+        Correct while the universe was three symbols. It became the binding
+        constraint on the whole of Phase 4: carry is made of funding, and on
+        2026-08-09 the archive held 26 hours of it on three symbols while trades
+        were captured on 2,115. Per symbol, 857 perps would cost 857 weight a
+        tick against a 2,400/minute budget - impossible at any useful cadence.
+        The all-market form is ONE request at weight 10, so the entire universe
+        now costs less than three symbols did.
+
+        The "not a raw archive of what was asked for" objection dissolves once
+        the whole market is what is being asked for. Each instrument's object is
+        still written verbatim to its own file, byte-compatible with what the
+        per-symbol poll wrote, so the existing funding history continues without
+        a seam.
+        """
+        # Funding is NOT here. It is polled by `BinanceFundingVenue` in a
+        # separate process, because 857 funding writers rotating inside one
+        # synchronous tick killed this recorder's websocket at every hour
+        # boundary - see that module for the measurement and the comparison
+        # against binance-spot that identified it.
+        #
+        # Defined once in `funding_poll_specs` and returned only there, so the
+        # recorder cannot start polling it again by accident and the two
+        # processes cannot drift apart on cadence or weight.
+        specs: list[PollSpec] = []
+        # Only the core symbols carry depth diffs, so only they need a snapshot
+        # to replay those diffs onto. The tail subscribes trades alone.
+        specs += [
+            PollSpec(self.name, _DEPTH_SNAPSHOT_STREAM, symbol,
+                     f"{_DEPTH_SNAPSHOT_URL}?symbol={symbol}"
+                     f"&limit={_DEPTH_SNAPSHOT_LIMIT}",
+                     interval_seconds=_DEPTH_SNAPSHOT_INTERVAL_SECONDS,
+                     weight=_DEPTH_SNAPSHOT_WEIGHT)
+            for symbol in symbols
+        ]
+        return specs
+
+    def funding_poll_specs(self) -> list[PollSpec]:
+        """The all-market funding poll, defined once and owned by one process.
+
+        Kept on this class rather than on `BinanceFundingVenue` so the URL,
+        cadence and weight live beside the rest of the venue's knowledge of
+        itself. Only `BinanceFundingVenue` returns it from `poll_specs`.
+        """
+        return [
+            PollSpec(self.name, _POLL_STREAM, _ALL_MARKET_SYMBOL,
+                     _PREMIUM_INDEX_URL, weight=_PREMIUM_INDEX_ALL_WEIGHT,
+                     interval_seconds=_PREMIUM_INDEX_INTERVAL_SECONDS,
+                     fan_out=True),
+        ]
+
+    def open_interest_poll_specs(self, universe: list[str]) -> list[PollSpec]:
+        """One open-interest poll per instrument, across the whole universe.
+
+        Per symbol because the venue offers no all-market form: `/fapi/v1/
+        openInterest` takes exactly one symbol, and the stats endpoint
+        (`/futures/data/openInterestHist`) is a downsampled history, not the
+        live number. Weight 1 per request, measured 2026-08-09 from the
+        venue's own x-mbx-used-weight header.
+
+        The cadence is the budget arithmetic, disclosed rather than tuned: the
+        universe is ~860 instruments, so five minutes costs ~172 weight/minute
+        of the 2,400 budget shared with the funding poll (10) and the depth
+        snapshots (150). The poller phases specs sharing a cadence, so this
+        arrives as one request every ~350ms, never as an 860-socket burst.
+
+        Bybit and Hyperliquid need none of this: their funding polls already
+        carry `openInterest` per instrument in the same body, verified on the
+        stored frames 2026-08-09.
+        """
+        return [
+            PollSpec(self.name, _OPEN_INTEREST_STREAM, symbol,
+                     f"{_OPEN_INTEREST_URL}?symbol={symbol}",
+                     interval_seconds=_OPEN_INTEREST_INTERVAL_SECONDS,
+                     weight=_OPEN_INTEREST_WEIGHT)
+            for symbol in universe
+        ]
+
+    def fan_out_poll(self, spec: PollSpec, parsed) -> list[tuple[str, object]]:
+        """Split one all-market response into (symbol, object) pairs.
+
+        The all-market `premiumIndex` is a flat array of per-instrument objects,
+        each naming its own symbol - so each element is exactly what the
+        per-symbol endpoint returns for that instrument, and writing it verbatim
+        keeps the archive byte-compatible with the history already captured.
+
+        An element with no usable symbol is DROPPED here and counted by the
+        caller rather than filed under a guess: this venue keys every file on
+        symbol, and a wrong one poisons a carry cost that reads it back.
+        """
+        if not isinstance(parsed, list):
+            return []
+        pairs = []
+        for element in parsed:
+            if isinstance(element, dict) and isinstance(element.get("s" if "s" in element
+                                                                   else "symbol"), str):
+                symbol = element.get("s") or element.get("symbol")
+                if symbol:
+                    pairs.append((symbol, element))
+        return pairs
+
+    def ws_url(self, specs: list[StreamSpec]) -> str:
+        return _WS_BASE + "/".join(spec.channel for spec in specs)
+
+    def subscribe_messages(self, specs: list[StreamSpec]) -> list[dict]:
+        return []          # subscription is encoded in the URL
+
+    def extract(self, parsed: dict) -> ExtractedMeta:
+        if not isinstance(parsed, dict):
+            return ExtractedMeta(None, None, "control", "unknown", "unknown")
+
+        body = parsed.get("data", parsed)
+        if not isinstance(body, dict):
+            return ExtractedMeta(None, None, "control", "unknown", "unknown")
+
+        event = body.get("e")
+        if not isinstance(event, str):
+            # A REST body has no event field - it is a bare object, not a
+            # wrapped stream frame. `premiumIndex` is recognised by the fields
+            # it is fetched for, so a polled response is routed as data rather
+            # than dismissed as an unknown control frame.
+            if isinstance(body.get("markPrice"), str) and isinstance(body.get("symbol"), str):
+                t_poll_ms = body.get("time")
+                return ExtractedMeta(
+                    t_poll_ms if isinstance(t_poll_ms, int) else None,
+                    None, "data", _POLL_STREAM, body["symbol"])
+            # The open-interest body is the other polled shape: symbol, the
+            # figure, and the venue's clock. Unrecognised, it was filed as
+            # control - present on disk but flagged as a frame the venue
+            # merely said in passing, which downstream readers rightly skip.
+            # Measured on the first 90-second run: all 170 OI bodies.
+            if isinstance(body.get("openInterest"), str) and isinstance(body.get("symbol"), str):
+                t_poll_ms = body.get("time")
+                return ExtractedMeta(
+                    t_poll_ms if isinstance(t_poll_ms, int) else None,
+                    None, "data", _OPEN_INTEREST_STREAM, body["symbol"])
+            return ExtractedMeta(None, None, "control", "unknown", "unknown")
+
+        seq = None
+        if event == "depthUpdate":
+            seq = {k: body[k] for k in ("U", "u", "pu", "T") if k in body} or None
+
+        t_exch_ms = body.get("E")
+        if not isinstance(t_exch_ms, int):
+            t_exch_ms = None
+
+        symbol = body.get("s")
+        if not isinstance(symbol, str) or not symbol:
+            # Not every event puts the symbol at top level - forceOrder nests
+            # order fields under "o". Fall back there before giving up.
+            nested = body.get("o")
+            symbol = nested.get("s") if isinstance(nested, dict) else None
+            if not isinstance(symbol, str) or not symbol:
+                symbol = "unknown"
+
+        stream = _EVENT_TO_STREAM.get(event, event)
+        return ExtractedMeta(t_exch_ms, seq, "data", stream, symbol)
+
+    def instruments_request(self) -> tuple[str, str, dict | None]:
+        return ("GET", _INSTRUMENTS_URL, None)
+
+    def parse_instruments(self, payload: dict) -> list[str]:
+        if not isinstance(payload, dict):
+            return []
+        symbols = payload.get("symbols")
+        if not isinstance(symbols, list):
+            return []
+
+        result = []
+        for item in symbols:
+            if not isinstance(item, dict):
+                continue
+            if item.get("contractType") != "PERPETUAL" or item.get("status") != "TRADING":
+                continue
+            symbol = item.get("symbol")
+            if isinstance(symbol, str) and symbol:
+                result.append(symbol)
+        return sorted(result)
+
+    def parse_quote_assets(self, payload: dict) -> dict[str, str]:
+        """What each perpetual is priced in, from the venue's own field.
+
+        Read live 2026-08-08 over the 569 PERPETUAL-and-TRADING pairs: 526 USDT,
+        38 USDC, 2 USD1, 2 quoted in `U` and 1 in BTC. So futures is nearly all
+        dollars and not entirely, and the three exceptions are exactly the kind
+        that reads as a rounding error until one of them is in a P&L.
+
+        Filtered the same way `parse_instruments` filters, deliberately: a quote
+        map covering symbols the universe excludes would let a caller iterate the
+        map and pick up a quarterly this venue never captures.
+        """
+        if not isinstance(payload, dict):
+            return {}
+        symbols = payload.get("symbols")
+        if not isinstance(symbols, list):
+            return {}
+
+        quotes: dict[str, str] = {}
+        for item in symbols:
+            if not isinstance(item, dict):
+                continue
+            if item.get("contractType") != "PERPETUAL" or item.get("status") != "TRADING":
+                continue
+            symbol, quote = item.get("symbol"), item.get("quoteAsset")
+            if isinstance(symbol, str) and symbol and isinstance(quote, str) and quote:
+                quotes[symbol] = quote
+        return quotes

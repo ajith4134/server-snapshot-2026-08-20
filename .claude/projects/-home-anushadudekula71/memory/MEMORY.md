@@ -1,0 +1,15 @@
+- [Session-start binding](session-start-binding.md) — most config hot-reloads; `/reload-plugins` before a restart; the real exceptions are few.
+- [Stop hook transcript flush race](stop-hook-transcript-flush-race.md) — never parse `transcript_path` for the current turn; use `last_assistant_message`.
+- [Hook verification needs a live log](hook-verification-needs-a-live-log.md) — a green test suite proves logic, not firing; check /tmp/claude-stophook-fired.txt.
+- [Summarizers drop and fabricate](summarizers-drop-and-fabricate.md) — WebFetch/WebSearch are unsafe for exact syntax; use raw curl and `gh`.
+- [security-guidance plugin costs](security-guidance-plugin-costs.md) — Opus-tier LLM review on every Stop/commit/push once you are in a git repo; inert today.
+- [burn cost tooling](burn-cost-tooling.md) — `claude-burn` on PATH instead of the plugin; blind to subagent spend.
+- [Trading bot intelligence standard](trading-bot-intelligence-standard.md) — standing requirement: real learning, reasoning and depth on three axes; never make the user restate it.
+- [Trading bot goal and ledger](trading-bot-goal-and-ledger.md) — the goal doc and the 1,485-row ledger; search it before designing anything new.
+- [GCE startup script is metadata](gce-startup-script-is-metadata.md) — the repo file is a copy; the live one drifted three supervisors behind, install and diff it back.
+- [Eviction retention lives in a file](eviction-retention-lives-in-a-file.md) — `~/capture/eviction-keep-days` (7), not an env var; absent means off.
+- [Restarting a supervisor](restarting-a-supervisor-on-this-box.md) — pkill -f kills its own shell; TERM waits out sleep 3600; editing a live .sh needs a restart.
+- [Interview, don't assume](interview-instead-of-assuming.md) — ask the question and wait; never let an open question quietly become an assumption.
+- [Memory is keyed by directory](memory-is-keyed-by-directory.md) — a session started from / reads an empty key unless it is symlinked.
+- [Supervisors die with the session](supervisors-die-with-the-session.md) — start them detached via scripts/start_supervisors_detached.sh; screen is the only without-root path.
+- [Store building paused for repartition](store-building-paused-for-repartition.md) — store_supervisor stopped and ~/capture/boards/WALL-OFF set; both need turning back on.

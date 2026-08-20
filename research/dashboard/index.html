@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Boards — Autonomous Crypto Trading System</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --ground:#080D11; --panel:#0F171D; --rule:#1E2C35;
+    --ink:#E8F0F4; --ink-2:#93A7B3; --ink-3:#61737E;
+    --live:#3FD68A; --design:#4FC3E8;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: light) {
+    :root { color-scheme: light; --ground:#EDF1F4; --panel:#FFFFFF; --rule:#D6DFE5;
+            --ink:#0B1418; --ink-2:#465761; --ink-3:#6D808B;
+            --live:#12764A; --design:#0F6382; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--ground); color:var(--ink); font-family:var(--sans);
+         line-height:1.55; display:flex; align-items:center; justify-content:center;
+         min-height:100vh; padding:clamp(20px,5vw,48px); }
+  .wrap { width:100%; max-width:660px; }
+  .kicker { font-family:var(--mono); font-size:11px; letter-spacing:.18em;
+            text-transform:uppercase; color:var(--ink-3); }
+  h1 { margin:8px 0 6px; font-size:clamp(24px,5vw,34px); letter-spacing:-.025em;
+       font-weight:660; line-height:1.05; }
+  .sub { margin:0 0 26px; color:var(--ink-2); font-size:14.5px; max-width:52ch; }
+  .cards { display:flex; flex-direction:column; gap:12px; }
+  a.card { display:block; text-decoration:none; color:inherit; background:var(--panel);
+           border:1px solid var(--rule); border-left:3px solid var(--tone);
+           border-radius:4px; padding:18px 20px; transition:border-color .14s ease; }
+  a.card:hover, a.card:focus-visible { border-color:var(--tone); outline:none; }
+  a.card:focus-visible { box-shadow:0 0 0 3px color-mix(in srgb, var(--tone) 35%, transparent); }
+  .card-k { font-family:var(--mono); font-size:10px; letter-spacing:.14em;
+            text-transform:uppercase; color:var(--tone); }
+  .card-t { font-size:18px; font-weight:620; letter-spacing:-.012em; margin:3px 0 4px; }
+  .card-d { font-size:13.5px; color:var(--ink-2); }
+  .live { --tone: var(--live); }
+  .design { --tone: var(--design); }
+  footer { margin:28px 0 0; font-family:var(--mono); font-size:11px; color:var(--ink-3); }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="kicker">Autonomous crypto trading system</div>
+    <h1>Four boards.</h1>
+    <p class="sub">One shows what the system is designed to do, one what it is actually
+    doing on the machine right now, and one how far the full build has moved. They are
+    deliberately separate — confusing a plan with a capability is how a plan gets
+    mistaken for one.</p>
+
+    <div class="cards">
+      <a class="card live" href="status-wall.html">
+        <div class="card-k">Measured</div>
+        <div class="card-t">Status wall</div>
+        <div class="card-d">What is running, broken, stopped or still only designed. Every
+        tile traces to a probe that ran; features with no probe read NOT BUILT.</div>
+      </a>
+      <a class="card design" href="feature-catalogue.html">
+        <div class="card-k">Designed</div>
+        <div class="card-t">Feature catalogue</div>
+        <div class="card-d">All catalogued features across 15 sections, filterable by
+        phase, with the commonly-forgotten ones flagged.</div>
+      </a>
+      <a class="card live" href="segment-bots.html">
+        <div class="card-k">Measured</div>
+        <div class="card-t">Segment bots</div>
+        <div class="card-d">The four segment bots — perp, spot, dated futures and options —
+        paper trading on LIVE venue feeds (RL-024), each with its own BULL, BEAR and
+        PROFIT-TAIL brains. Opens, closes, realised P&amp;L and feed age per bot. Rule brains
+        today, so every tile carries NO EDGE CLAIM; a bot with no heartbeat reads NOT MEASURED.</div>
+      </a>
+      <a class="card live" href="blotter.html">
+        <div class="card-k">Measured</div>
+        <div class="card-t">Paper blotter</div>
+        <div class="card-d">Open positions and closed round trips, read from the forward
+        engine's own fill journal. Every figure under both accountings — optimistic and
+        pessimistic — because a blotter showing one is choosing the flattering one.</div>
+      </a>
+      <a class="card live" href="build-progress.html">
+        <div class="card-k">Measured</div>
+        <div class="card-t">Build progress</div>
+        <div class="card-d">The full-build master plan, phase by phase — how much of each
+        is lit on the wall, the ledger's UNRESOLVED count, and whether paper trading is
+        journalling. Regenerated with the wall; a dark bar is the correct bar for an
+        unbuilt phase.</div>
+      </a>
+    </div>
+
+    <footer>Served from this machine over a Cloudflare tunnel · not indexed</footer>
+  </div>
+</body>
+</html>

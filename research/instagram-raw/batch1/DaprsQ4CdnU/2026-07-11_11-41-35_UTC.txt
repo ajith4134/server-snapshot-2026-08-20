@@ -1,0 +1,8 @@
+Statistics is the foundation of Machine Learning.
+
+If you truly understand probability distributions and statistical tests, you'll understand why models work—not just how to use them.
+
+I've created two reference posters that every Data Scientist, ML Engineer, and AI enthusiast should save:
+
+📌 Relationships Among Common Probability Distributions
+📌 Statistical Tests Every Data Scientist Should Know

@@ -1,0 +1,6 @@
+- [Session-start binding](session-start-binding.md) — most config hot-reloads; `/reload-plugins` before a restart; the real exceptions are few.
+- [Stop hook transcript flush race](stop-hook-transcript-flush-race.md) — never parse `transcript_path` for the current turn; use `last_assistant_message`.
+- [Hook verification needs a live log](hook-verification-needs-a-live-log.md) — a green test suite proves logic, not firing; check /tmp/claude-stophook-fired.txt.
+- [Summarizers drop and fabricate](summarizers-drop-and-fabricate.md) — WebFetch/WebSearch are unsafe for exact syntax; use raw curl and `gh`.
+- [security-guidance plugin costs](security-guidance-plugin-costs.md) — Opus-tier LLM review on every Stop/commit/push once you are in a git repo; inert today.
+- [burn cost tooling](burn-cost-tooling.md) — `claude-burn` on PATH instead of the plugin; blind to subagent spend.

@@ -1,0 +1,45 @@
+I built a 24/7 AI trader with Fable 5 🤖📈
+
+It scans the market, looks for setups, builds trade plans, checks risk, and keeps monitoring everything around the clock. 🌎⏰
+
+Here’s the workflow:
+
+🔎 SCAN → 📡 SIGNALS → 📝 PLAN → 🛡️ RISK → 👀 MONITOR → ✅ DECISION
+
+It watches:
+
+📊 Price action
+📰 News
+📈 Volume
+🧭 Trends
+⭐ Watchlists
+
+Then it flags potential setups and creates a full trade plan with:
+
+🎯 Entry
+💰 Target
+🛑 Stop
+⚠️ Invalidation
+🛡️ Risk level
+
+Before anything moves forward, the risk system checks:
+
+📐 Position size
+📦 Total exposure
+📉 Drawdown
+🌪️ Volatility
+🚨 Maximum loss
+
+The final output is simple:
+
+✅ APPROVED
+👁️ WATCHLIST
+❌ REJECTED
+
+Human review is still required. This is a research and decision-support system, not guaranteed profit or financial advice.
+
+Comment “24/7” and I’ll send you the full Fable 5 setup, prompts, and workflow. 👇🔥
+
+Follow @seb.ai for more AI trading systems, agents, and workflows.
+
+#fable5 #aitrading #tradingbot #aiagents #claudecode

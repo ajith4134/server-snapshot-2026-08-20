@@ -1,0 +1,11 @@
+Your AI might not be learning. It might be memorizing — right up until the moment it isn't.
+
+In 2022, OpenAI researchers watched a small model do something the textbooks said was impossible. It memorized its training data, scored near-zero on anything new, and stayed dead for thousands of steps. Then test accuracy snapped from chance to near-perfect. They called it grokking — borrowed from Heinlein's sci-fi word for understanding something completely.
+
+The explanation took years and came from mechanistic interpretability: two circuits compete inside the network. A memorization circuit (a giant lookup table) wins early. A generalizing circuit grows silently underneath. Weight decay taxes complexity — and eventually the elegant algorithm outcompetes the bloated table. When researchers reverse-engineered a grokked network, they found it had independently invented a Fourier-based trigonometric algorithm for modular arithmetic. Nobody put it there.
+
+The transition even carries the mathematical signature of a phase transition — the same class of event as water freezing.
+
+The 2026 twist: extend training to ~10 million steps and some models "anti-grok," collapsing back out of understanding. The line between memorizing and knowing is thinner, stranger, and less permanent than anyone assumed.
+
+#artificialintelligence #grokking #machinelearning #deeplearning #AIexplained

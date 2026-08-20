@@ -1,0 +1,35 @@
+30 Quant Formulas.
+
+These are the formulas that separate people who watch quant finance from people who work in it.
+
+Every quantitative researcher, trader, and risk analyst relies on mathematics—not intuition.
+
+If you’re serious about breaking into quant finance, these formulas should become second nature.
+
+Inside this guide you’ll learn formulas from:
+
+• Probability & Statistics
+• Linear Algebra
+• Optimization
+• Stochastic Calculus
+• Black-Scholes & Option Pricing
+• Greeks
+• Fixed Income
+• Portfolio Theory
+• Risk Management
+
+Don’t just memorize them.
+
+Understand what each formula measures, when to use it, and why it matters.
+
+That’s what turns equations into real-world decision-making.
+
+📌 Save this post—you’ll come back to these formulas throughout your quant journey.
+
+💬 Comment “FORMULAS” and I’ll send you my complete 100 Quant Finance Formulas guide.
+
+⸻
+
+#QuantFinance #QuantitativeFinance #Quant #QuantResearch #AlgorithmicTrading 
+
+(QuantitativeTrading FinancialEngineering RiskManagement Derivatives BlackScholes StochasticCalculus MachineLearning Probability Statistics LinearAlgebra Optimization PortfolioManagement DataScience Python FinanceCareer CFA FRM FinanceStudents Trading InvestmentBanking FinancialModeling STEM Mathematics CareerGrowth )

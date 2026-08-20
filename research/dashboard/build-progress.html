@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Build progress — full-build master plan</title>
+<style>
+  :root { color-scheme: dark; --ground:#080D11; --panel:#0F171D; --rule:#1E2C35;
+    --ink:#E8F0F4; --ink-2:#93A7B3; --ink-3:#61737E; --lit:#3FD68A; --dark:#26343D;
+    --warn:#E8B04F; --fail:#E85A4F;
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace; }
+  @media (prefers-color-scheme: light) {
+    :root { color-scheme: light; --ground:#EDF1F4; --panel:#FFFFFF; --rule:#D6DFE5;
+      --ink:#0B1418; --ink-2:#465761; --ink-3:#6D808B; --lit:#12764A; --dark:#C9D4DB;
+      --warn:#9A6B0F; --fail:#B3261E; } }
+  * { box-sizing:border-box; } body { margin:0; background:var(--ground); color:var(--ink);
+    font-family:var(--mono); padding:clamp(16px,4vw,40px); }
+  h1 { font-size:clamp(18px,4vw,26px); margin:0 0 4px; }
+  .sub { color:var(--ink-3); font-size:12px; margin-bottom:24px; }
+  table { border-collapse:collapse; width:100%; max-width:880px; }
+  th,td { text-align:left; padding:10px 12px; border-bottom:1px solid var(--rule);
+    font-size:13px; vertical-align:top; }
+  th { color:var(--ink-3); font-size:11px; letter-spacing:.14em; text-transform:uppercase; }
+  .bar { display:flex; height:10px; border-radius:5px; overflow:hidden;
+    background:var(--dark); min-width:160px; }
+  .bar span { background:var(--lit); }
+  .n { color:var(--ink-2); white-space:nowrap; }
+  .zero { color:var(--ink-3); }
+  .fail { color:var(--fail); } .warn { color:var(--warn); } .lit { color:var(--lit); }
+  .foot { margin-top:24px; color:var(--ink-3); font-size:11px; max-width:880px; }
+</style></head><body>
+<h1>Build progress — phases A–J</h1>
+
+<div id="staleness" class="staleness staleness-unknown"
+     data-generated="1786973888"
+     data-stale-after="900">
+  <!-- Server-rendered fallback. If the script does not run, this is what shows:
+       it names the generation instant and admits the age is unknown, which is
+       the honest state for a page that cannot measure itself. It is deliberately
+       NOT the healthy styling. -->
+  AGE UNKNOWN — this page was generated at
+  <span class="staleness-when">2026-08-17 13:38 UTC</span> and could not measure how long
+  ago that was
+</div>
+<style>
+  .staleness { display:block; margin:0 0 18px; padding:10px 14px;
+    border-radius:8px; font-size:12px; letter-spacing:.04em;
+    border:1px solid var(--rule); background:var(--panel); color:var(--ink-2); }
+  .staleness-unknown { border-color:var(--warn); color:var(--warn); }
+  .staleness-fresh { border-color:var(--rule); color:var(--ink-3); }
+  .staleness-stale { border-color:var(--fail); color:var(--fail);
+    font-weight:600; }
+</style>
+<script>
+(function () {
+  var node = document.getElementById('staleness');
+  if (!node) return;
+  var generated = parseInt(node.getAttribute('data-generated'), 10);
+  var staleAfter = parseInt(node.getAttribute('data-stale-after'), 10);
+  if (!generated) return;
+
+  function describe(seconds) {
+    if (seconds < 90) return Math.max(0, Math.round(seconds)) + 's';
+    if (seconds < 5400) return Math.round(seconds / 60) + ' min';
+    if (seconds < 172800) return (seconds / 3600).toFixed(1) + 'h';
+    return (seconds / 86400).toFixed(1) + ' days';
+  }
+
+  function paint() {
+    var age = (Date.now() / 1000) - generated;
+    node.className = 'staleness ' + (age > staleAfter ? 'staleness-stale'
+                                                      : 'staleness-fresh');
+    if (age > staleAfter) {
+      // Named as a broken generator rather than as an old page, because that is
+      // the thing to go and fix, and it is what nobody worked out for five days.
+      node.textContent = 'STALE — this board is ' + describe(age) + ' old. '
+        + 'The generator has stopped writing it; what you are reading is not '
+        + 'the current state of the system.';
+    } else {
+      node.textContent = 'live — regenerated ' + describe(age) + ' ago';
+    }
+  }
+
+  paint();
+  // Repainted while the tab sits open, so a board left on a second monitor goes
+  // red by itself instead of staying green until someone reloads it.
+  setInterval(paint, 15000);
+})();
+</script>
+
+<div class="sub">generated 2026-08-17 13:38 UTC ·
+59 / 192 catalogue features lit ·
+plan: docs/superpowers/plans/2026-08-09-full-build-master-plan.md</div>
+<table>
+<tr><th>Phase</th><th>Scope</th><th></th><th>Measured</th></tr>
+<tr><td>A</td><td>Data &amp; ingestion completion</td><td><div class='bar'><span style='width:85%'></span></div></td><td class='n'>17 / 20 lit — FAILING 1 · DEGRADED 2 · PARTIAL 5 · OK 9</td></tr><tr><td>B</td><td>Feature engineering</td><td><div class='bar'><span style='width:100%'></span></div></td><td class='n'>16 / 16 lit — DEGRADED 3 · PARTIAL 10 · OK 3</td></tr><tr><td>C</td><td>Models &amp; strategy families</td><td><div class='bar'><span style='width:33%'></span></div></td><td class='n'>8 / 24 lit — PARTIAL 7 · OK 1</td></tr><tr><td>D</td><td>BULL / BEAR / PROFIT-TAIL, brain 1</td><td><div class='bar'><span style='width:9%'></span></div></td><td class='n'>2 / 22 lit — PARTIAL 2</td></tr><tr><td>E</td><td>Portfolio &amp; risk</td><td><div class='bar'><span style='width:8%'></span></div></td><td class='n'>2 / 24 lit — PARTIAL 2</td></tr><tr><td>F</td><td>Execution, ops &amp; live-prep</td><td><div class='bar'><span style='width:23%'></span></div></td><td class='n'>9 / 39 lit — DEGRADED 3 · NOT MEASURED 1 · PARTIAL 3 · OK 2</td></tr><tr><td>G</td><td>Brains 2-3 + intelligence layer</td><td><div class='bar'><span style='width:0%'></span></div></td><td class='n'>0 / 17 lit</td></tr><tr><td>H</td><td>Dashboard &amp; observability</td><td><div class='bar'><span style='width:33%'></span></div></td><td class='n'>2 / 6 lit — PARTIAL 1 · BUILT 1</td></tr><tr><td>I</td><td>Ledger closure &amp; governance</td><td><div class='bar'><span style='width:12%'></span></div></td><td class='n'>3 / 24 lit — DEGRADED 1 · PARTIAL 1 · OK 1</td></tr>
+<tr><td>I+</td><td>Requirements ledger sweep</td><td><div class='bar'><span style='width:0%'></span></div></td><td class='n warn'>108 UNRESOLVED rows (done at 0)</td></tr>
+<tr><td>J</td><td>Paper trading (forward journal)</td>
+<td class="fail">NOT RUNNING</td>
+<td class="n">STALE — last heartbeat 0.1h ago, strategy &#x27;plumbing-momentum&#x27;. The engine is not running</td></tr>
+</table>
+<div class="foot">Every count is measured: phase rows group the status wall's
+per-feature probe results under the declared section mapping in
+statuswall/build_progress.py; the ledger row counts UNRESOLVED cells in
+research/ledger/merged; the paper row probes the forward journal directory.
+A dark bar is the correct bar for an unbuilt phase.</div>
+</body></html>

@@ -1,0 +1,1036 @@
+<title>Feature Catalogue — Autonomous Crypto Trading System</title>
+
+<style>
+  :root {
+    color-scheme: light;
+    --ground:      #E9EDF0;
+    --panel:       #FFFFFF;
+    --panel-2:     #F3F6F8;
+    --ink:         #0F171C;
+    --ink-2:       #47555F;
+    --ink-3:       #6F7E89;
+    --rule:        #D2DAE0;
+    --rule-soft:   #E2E8ED;
+    --accent:      #A2650F;
+    --accent-bg:   #F7E9CD;
+    --accent-rule: #D9A445;
+    --p0: #0E4E63;  --p0-bg: #D6E7EE;
+    --p1: #22738D;  --p1-bg: #DDEBF1;
+    --p2: #4E93AB;  --p2-bg: #E4EFF3;
+    --p3: #7BA8B9;  --p3-bg: #EAF2F5;
+    --px: #7A868E;  --px-bg: #E6EAED;
+    --shadow: 0 1px 2px rgba(15,23,28,.06), 0 8px 24px -12px rgba(15,23,28,.18);
+
+    --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color-scheme: dark;
+      --ground:      #0A1014;
+      --panel:       #121B20;
+      --panel-2:     #172228;
+      --ink:         #E7EEF2;
+      --ink-2:       #9FB0BA;
+      --ink-3:       #6D808C;
+      --rule:        #223138;
+      --rule-soft:   #1A262C;
+      --accent:      #F0A830;
+      --accent-bg:   #3B2C11;
+      --accent-rule: #8A6420;
+      --p0: #8FD9F2;  --p0-bg: #123340;
+      --p1: #55B2D0;  --p1-bg: #102B36;
+      --p2: #3D89A4;  --p2-bg: #0E242C;
+      --p3: #316A7E;  --p3-bg: #0C1D24;
+      --px: #61727C;  --px-bg: #141E23;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --ground:#E9EDF0; --panel:#FFFFFF; --panel-2:#F3F6F8;
+    --ink:#0F171C; --ink-2:#47555F; --ink-3:#6F7E89;
+    --rule:#D2DAE0; --rule-soft:#E2E8ED;
+    --accent:#A2650F; --accent-bg:#F7E9CD; --accent-rule:#D9A445;
+    --p0:#0E4E63; --p0-bg:#D6E7EE; --p1:#22738D; --p1-bg:#DDEBF1;
+    --p2:#4E93AB; --p2-bg:#E4EFF3; --p3:#7BA8B9; --p3-bg:#EAF2F5;
+    --px:#7A868E; --px-bg:#E6EAED;
+    --shadow: 0 1px 2px rgba(15,23,28,.06), 0 8px 24px -12px rgba(15,23,28,.18);
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --ground:#0A1014; --panel:#121B20; --panel-2:#172228;
+    --ink:#E7EEF2; --ink-2:#9FB0BA; --ink-3:#6D808C;
+    --rule:#223138; --rule-soft:#1A262C;
+    --accent:#F0A830; --accent-bg:#3B2C11; --accent-rule:#8A6420;
+    --p0:#8FD9F2; --p0-bg:#123340; --p1:#55B2D0; --p1-bg:#102B36;
+    --p2:#3D89A4; --p2-bg:#0E242C; --p3:#316A7E; --p3-bg:#0C1D24;
+    --px:#61727C; --px-bg:#141E23;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 clamp(16px, 4vw, 40px) 96px;
+  }
+
+  /* ---------- masthead ---------- */
+
+  .masthead {
+    padding: clamp(36px, 7vw, 72px) 0 28px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    align-items: center;
+  }
+  .eyebrow .tick { color: var(--accent); }
+  h1 {
+    margin: 0;
+    font-size: clamp(30px, 5.2vw, 52px);
+    line-height: 1.03;
+    letter-spacing: -.028em;
+    font-weight: 660;
+    text-wrap: balance;
+    max-width: 20ch;
+  }
+  .standfirst {
+    margin: 0;
+    max-width: 62ch;
+    color: var(--ink-2);
+    font-size: clamp(15px, 1.6vw, 17px);
+  }
+
+  /* ---------- summary strip ---------- */
+
+  .strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 28px 0 0;
+    box-shadow: var(--shadow);
+  }
+  .tile {
+    background: var(--panel);
+    padding: 14px 16px 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .tile-k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .13em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tile-v {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 26px;
+    line-height: 1.1;
+    font-weight: 600;
+    letter-spacing: -.02em;
+  }
+  .tile-sub { font-size: 11px; color: var(--ink-3); }
+  .tile[data-tone="p0"] .tile-v { color: var(--p0); }
+  .tile[data-tone="p1"] .tile-v { color: var(--p1); }
+  .tile[data-tone="p2"] .tile-v { color: var(--p2); }
+  .tile[data-tone="p3"] .tile-v { color: var(--p3); }
+  .tile[data-tone="missed"] .tile-v { color: var(--accent); }
+
+  /* ---------- controls ---------- */
+
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: color-mix(in srgb, var(--ground) 88%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--rule);
+    margin: 32px 0 0;
+    padding: 12px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    align-items: center;
+  }
+  .search {
+    flex: 1 1 230px;
+    min-width: 180px;
+    font: inherit;
+    font-size: 14px;
+    padding: 8px 12px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+  }
+  .search::placeholder { color: var(--ink-3); }
+  .search:focus-visible,
+  .chip:focus-visible,
+  .theme-btn:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .chipset { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+    padding: 6px 11px;
+    border-radius: 3px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease, border-color .12s ease;
+  }
+  .chip:hover { border-color: var(--ink-3); }
+  .chip[aria-pressed="true"] { color: var(--panel); background: var(--ink); border-color: var(--ink); }
+  .chip[data-p="P0"][aria-pressed="true"] { background: var(--p0); border-color: var(--p0); color: var(--panel); }
+  .chip[data-p="P1"][aria-pressed="true"] { background: var(--p1); border-color: var(--p1); color: var(--panel); }
+  .chip[data-p="P2"][aria-pressed="true"] { background: var(--p2); border-color: var(--p2); color: var(--panel); }
+  .chip[data-p="P3"][aria-pressed="true"] { background: var(--p3); border-color: var(--p3); color: var(--panel); }
+  .chip[data-p="missed"][aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--panel); }
+  :root[data-theme="dark"] .chip[aria-pressed="true"],
+  :root[data-theme="dark"] .chip[data-p][aria-pressed="true"] { color: #0A1014; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .chip[aria-pressed="true"] { color: #0A1014; }
+  }
+  .count-live {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+  .theme-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink-2);
+    border-radius: 3px;
+    cursor: pointer;
+  }
+
+  /* ---------- sections ---------- */
+
+  section.cat { margin: 44px 0 0; scroll-margin-top: 72px; }
+  section.cat[hidden] { display: none; }
+
+  .sec-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+    flex-wrap: wrap;
+  }
+  .sec-idx {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+    letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .sec-title {
+    margin: 0;
+    font-size: clamp(17px, 2.2vw, 21px);
+    letter-spacing: -.012em;
+    font-weight: 620;
+  }
+  .sec-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .flag-new {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid var(--accent-rule);
+    background: var(--accent-bg);
+    padding: 2px 7px;
+    border-radius: 2px;
+  }
+  .sec-note {
+    margin: 12px 0 0;
+    padding: 12px 16px;
+    background: var(--panel-2);
+    border-left: 2px solid var(--rule);
+    font-size: 13.5px;
+    color: var(--ink-2);
+    max-width: 78ch;
+  }
+
+  .rows { display: flex; flex-direction: column; }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 22rem) 52px minmax(0, 1fr);
+    gap: 0 18px;
+    align-items: start;
+    padding: 11px 14px 11px 12px;
+    border-bottom: 1px solid var(--rule-soft);
+    border-left: 2px solid transparent;
+    background: var(--panel);
+  }
+  .row[hidden] { display: none; }
+  .row:nth-child(even) { background: var(--panel-2); }
+  .row.is-missed { border-left-color: var(--accent-rule); }
+
+  .r-name { font-size: 14px; line-height: 1.45; min-width: 0; }
+  .r-name .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9.5px;
+    letter-spacing: .1em;
+    color: var(--accent);
+    background: var(--accent-bg);
+    border: 1px solid var(--accent-rule);
+    border-radius: 2px;
+    padding: 1px 5px;
+    margin-left: 7px;
+    vertical-align: 2px;
+    white-space: nowrap;
+  }
+  .r-phase {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-align: center;
+    padding: 2px 0;
+    border-radius: 2px;
+    font-variant-numeric: tabular-nums;
+  }
+  .r-phase[data-p="P0"] { color: var(--p0); background: var(--p0-bg); }
+  .r-phase[data-p="P1"] { color: var(--p1); background: var(--p1-bg); }
+  .r-phase[data-p="P2"] { color: var(--p2); background: var(--p2-bg); }
+  .r-phase[data-p="P3"] { color: var(--p3); background: var(--p3-bg); }
+  .r-phase[data-p="—"]  { color: var(--px);  background: var(--px-bg); }
+  .r-note { font-size: 13px; color: var(--ink-2); line-height: 1.5; min-width: 0; }
+  .r-note:empty::before { content: "—"; color: var(--ink-3); opacity: .5; }
+  .r-note code, .r-name code {
+    font-family: var(--mono);
+    font-size: .88em;
+    background: var(--panel-2);
+    border: 1px solid var(--rule-soft);
+    border-radius: 2px;
+    padding: 0 4px;
+  }
+  .row:nth-child(even) .r-note code { background: var(--panel); }
+
+  @media (max-width: 760px) {
+    .row { grid-template-columns: minmax(0,1fr) 46px; gap: 4px 12px; }
+    .r-note { grid-column: 1 / -1; }
+  }
+
+  .empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--ink-3);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .empty[hidden] { display: none; }
+
+  /* ---------- ranked + gate ---------- */
+
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 28px;
+    margin: 56px 0 0;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--rule);
+    border-radius: 3px;
+    padding: 22px 24px 24px;
+    box-shadow: var(--shadow);
+  }
+  .card h2 {
+    margin: 0 0 4px;
+    font-size: 17px;
+    font-weight: 620;
+    letter-spacing: -.01em;
+  }
+  .card .sub {
+    margin: 0 0 16px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  ol.ranked { margin: 0; padding: 0; list-style: none; counter-reset: r; display: flex; flex-direction: column; }
+  ol.ranked li {
+    counter-increment: r;
+    display: grid;
+    grid-template-columns: 26px 1fr;
+    gap: 10px;
+    padding: 7px 0;
+    border-top: 1px solid var(--rule-soft);
+    font-size: 13.5px;
+    align-items: baseline;
+  }
+  ol.ranked li:first-child { border-top: 0; }
+  ol.ranked li::before {
+    content: counter(r, decimal-leading-zero);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+  ol.ranked li:nth-child(-n+5)::before { color: var(--accent); }
+
+  dl.gate { margin: 0; display: flex; flex-direction: column; }
+  dl.gate > div {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 12px;
+    padding: 9px 0;
+    border-top: 1px solid var(--rule-soft);
+  }
+  dl.gate > div:first-child { border-top: 0; }
+  dl.gate dt {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    padding-top: 2px;
+  }
+  dl.gate dd { margin: 0; font-size: 13.5px; color: var(--ink-2); }
+
+  footer {
+    margin: 64px 0 0;
+    padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+  }
+
+  strong { font-weight: 640; color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">
+      <span>Autonomous crypto trading system</span>
+      <span class="tick">/</span>
+      <span>Feature catalogue</span>
+      <span class="tick">/</span>
+      <span>Rev 2026-08-03</span>
+    </div>
+    <h1>Everything the system does, and when it has to exist.</h1>
+    <p class="standfirst">
+      The exhaustive capability list — companion to <code>ARCHITECTURE.md</code>, which defines
+      components and contracts. Phase says when a capability must exist, not how hard it is.
+      Amber-railed rows are the ones commonly forgotten until they cost money or time; they are
+      the reason this document exists.
+    </p>
+  </header>
+
+  <div class="strip" id="strip"></div>
+
+  <div class="controls">
+    <input class="search" id="q" type="search" placeholder="Filter features, notes, sections…" aria-label="Filter features">
+    <div class="chipset" role="group" aria-label="Filter by phase">
+      <button class="chip" data-p="P0" aria-pressed="false">P0</button>
+      <button class="chip" data-p="P1" aria-pressed="false">P1</button>
+      <button class="chip" data-p="P2" aria-pressed="false">P2</button>
+      <button class="chip" data-p="P3" aria-pressed="false">P3</button>
+      <button class="chip" data-p="—" aria-pressed="false">Declined</button>
+      <button class="chip" data-p="missed" aria-pressed="false">Missed only</button>
+    </div>
+    <span class="count-live" id="live"></span>
+    <button class="theme-btn" id="theme" type="button">Theme</button>
+  </div>
+
+  <main id="cats"></main>
+  <p class="empty" id="empty" hidden>No feature matches that filter.</p>
+
+  <div class="pair">
+    <div class="card">
+      <h2>The twenty most-forgotten, ranked</h2>
+      <p class="sub">Ordered by what it costs to discover them late. The top five are ranked, not listed.</p>
+      <ol class="ranked" id="ranked"></ol>
+    </div>
+    <div class="card">
+      <h2>Phase 0 minimum</h2>
+      <p class="sub">Nothing goes live before all of these. This is a gate, not a checklist.</p>
+      <dl class="gate" id="gate"></dl>
+    </div>
+  </div>
+
+  <footer>
+    <span>Source: ~/research/FEATURES.md</span>
+    <span>Phase key: P0 before any capital · P1 before first live strategy · P2 before second strategy · P3 scale · — declined</span>
+  </footer>
+</div>
+
+<script type="application/json" id="data">
+{
+  "sections": [
+    {
+      "idx": "01", "title": "Market data & ingestion",
+      "rows": [
+        ["Spot OHLCV + trade tape, multi-venue", "P0", ""],
+        ["L2 order book depth (20–50 levels)", "P0", "Needed for realistic fill modelling, not just signals"],
+        ["Perpetual funding rate history + schedule", "P0", "Per-venue settlement times differ — this *is* the carry edge"],
+        ["Open interest", "P1", ""],
+        ["Liquidation feed", "P1", "Cascade detection, and a signal family in its own right"],
+        ["Spot-perp basis / term structure", "P0", "Core carry input"],
+        ["Mark price vs index vs oracle price, per venue", "P1", "MISSED::Hyperliquid funds on *oracle*, others on mark. Different economics"],
+        ["Cross-venue consolidated price, **liquidity-weighted**", "P1", "Naive N-source averaging is what broke Mango"],
+        ["Stablecoin peg monitor", "P1", "MISSED::USDe hit $0.65 *only on Binance* during Oct 2025"],
+        ["Exchange reserve / netflow", "P2", ""],
+        ["On-chain data (DEX pools, oracle updates)", "P2", "Only if trading DEX venues"],
+        ["Macro context (DXY, rates, equity beta)", "P2", "Regime conditioning"],
+        ["News / social / dev-activity feeds", "P3", "Behind the Dual-LLM quarantine"],
+        ["Per-feed data-quality score", "P1", "MISSED::Feed health as a first-class metric, not an assumption"],
+        ["Gap detection + provenance-flagged backfill", "P0", "Interpolated candles must be *labelled*, never silently blended"],
+        ["Wash-trading discount on reported volume", "P1", "MISSED::Never size off raw aggregate volume"]
+      ]
+    },
+    {
+      "idx": "02", "title": "Feature engineering",
+      "note": "**Not doing:** the 200-indicator technical zoo. 7,846 rules tested on 100 years of Dow data; the best failed out-of-sample once corrected for search size.",
+      "rows": [
+        ["Realized volatility, multi-horizon", "P0", ""],
+        ["**HAR-RV**", "P1", "Beats GARCH-family for short-horizon crypto"],
+        ["Depth-weighted order-flow imbalance", "P1", "**Never level-1 OBI** — demonstrably spoofable"],
+        ["**Absorption detection (delta vs price-hold)**", "P1", "MISSED::Positive delta at a high is meaningless if price cannot hold — that is **absorption, not strength**, and is bearish. Raw signed delta is as naive as level-1 imbalance"],
+        ["Microprice", "P2", "Volume-adjusted variant outperforms the original"],
+        ["Kyle's lambda", "P2", "Liquidity-regime descriptor for sizing, not a standalone signal"],
+        ["Fractional differentiation", "P1", "Stationarity without destroying memory. Use `fracdiff` (BSD-3)"],
+        ["Triple-barrier labelling", "P1", "Barrier width is a hyperparameter — it goes through the Trial Registry"],
+        ["Meta-labelling", "P2", "Bet sizing / precision. Not an overfitting cure"],
+        ["Sample uniqueness + sequential bootstrap", "P1", "Overlapping labels violate IID"],
+        ["Funding / basis spread features", "P0", ""],
+        ["Time-of-day, day-of-week, **funding-hour** effects", "P1", "MISSED::Funding settles at fixed times, creating predictable flow"],
+        ["Cross-sectional ranking across pairs", "P2", ""],
+        ["Volatility-regime decile", "P1", "Feature only — never a gate"],
+        ["Correlation / beta to BTC", "P2", ""],
+        ["Feature staleness timestamp on every value", "P0", "MISSED::A feature must carry when it became knowable"]
+      ]
+    },
+    {
+      "idx": "03", "title": "Models",
+      "rows": [
+        ["**Linear / naive baseline, mandatory**", "P0", "MISSED::Every model must beat it before promotion. Cheapest overfitting check that exists"],
+        ["Gradient-boosted trees", "P1", "Primary workhorse; CPU-native"],
+        ["Stacked ensemble", "P2", ""],
+        ["Meta-model over the experiment ledger", "P2", "Learns which strategies work in which regime"],
+        ["Champion / challenger with delayed-label comparison", "P2", "\"Shadow Before Swap\""],
+        ["Rolling walk-forward retrain", "P1", "Preferred over continual-learning ML"],
+        ["Model registry with aliases", "P1", "MLflow aliases — registry *stages* are deprecated"],
+        ["Deep learning", "P3", "Only as a representation front-end feeding a simpler decider"]
+      ]
+    },
+    {
+      "idx": "03b", "title": "Directional and profit bots — BULL / BEAR / PROFIT-TAIL", "isNew": true,
+      "note": "Three independent bots per brain, each a full project with its own features, architecture and training pipeline. Full design: **bull-bear-profit-agents-spec.md** (supersedes dual-agent-spec.md). Nine bots at maturity — brain 1's three are built and proven first. **Model choice is decided by evidence:** every bot bakes off deep architectures against gradient boosting and the mandatory linear baseline on this system's own data. Deep is allowed to win, not assumed to.",
+      "rows": [
+        ["**BULL bot** — long/call side only", "P1", "Independent bot, not a model head. Calibrated P(up) + conviction. Proposes only"],
+        ["**BEAR bot** — short/put side only", "P1", "Same, opposite side. Short-side position limits stricter than long — a squeeze has no ceiling"],
+        ["Trained on **all** data, never direction-filtered", "P1", "MISSED::A bull trained only on up-moves has never seen the negative class and cannot calibrate. Specialisation lives in the objective and action space, never the dataset"],
+        ["Entry-side labels from **counterfactual triple barrier**", "P1", "MISSED::Never train the directional bots on realised outcomes — they did not control the fill or the exit. Judging them on it corrupts the signal"],
+        ["Arbiter over the joint distribution", "P2", "Meta-labelling. **Trade selection lives here** — the only place a trade is chosen or refused"],
+        ["**PROFIT-TAIL bot**", "P2", "Third independent bot. Owns entry timing and the entire position after fill. **Cannot reject a selected trade, cannot refuse to close a loser**"],
+        ["— `time_the_entry`: joint price + flow-confirmation policy", "P2", "Learned jointly, not two rules bolted together. Waits for a level *and* for flow evidence the move is starting"],
+        ["— **Signal expiry bound on waiting**", "P1", "MISSED::Without a deadline, \"not yet\" is a silent rejection and the bot takes authority it was denied. Expired = abandoned + logged"],
+        ["— **Missed-entry rate as a monitored metric**", "P2", "MISSED::A timing bot that misses the biggest movers is failing while its fill prices look excellent. Attributed to PROFIT-TAIL, not to the directional bot"],
+        ["— `ratchet_profit_lock`: monotone, volatility-scaled", "P1", "Moves only in the favourable direction, never widens, for any model output. Distance is a function of realised vol, not a fixed percent"],
+        ["— **Profit lock mirrored venue-side as reduce-only stop**", "P1", "MISSED::A lock held only in memory protects nothing during a crash, deploy or partition — exactly when it is needed. Reconciled continuously"],
+        ["— `decide_position_action`: HOLD / SCALE_OUT / CLOSE / REQUEST_ADD", "P2", "May *request* an add; the arbiter and risk gate decide. May never flip a position — a reversal is a new trade"],
+        ["— **Objective is expectancy and tail capture, never win rate**", "P2", "MISSED::A win-rate objective teaches it to cut winners and hold losers — the exact inverse of the design, and the mechanism by which \"always close in profit\" empties an account"],
+        ["— **Hard stop overrides PROFIT-TAIL absolutely**", "P0", "Risk gate owns it, set at fill, never moved by the bot. Its mandate to close in profit is an objective, not a veto"],
+        ["— Advisory `estimate_net_expectancy` / `estimate_loss_tail`", "P2", "Inputs to the arbiter and risk gate. Advisory only — a low number makes a trade less likely, it does not kill it"],
+        ["Deterministic exit policy as P1 fallback and rollback target", "P1", "Immediate entry + triple barrier + ATR trail + ratchet. **Generates the dataset PROFIT-TAIL is later trained on** — the ordering is forced"],
+        ["Baseline PROFIT-TAIL must beat", "P2", "The deterministic policy above, out-of-sample, per function. Timing may promote while exit does not"],
+        ["**Joint Trial Registry across all three bots**", "P1", "MISSED::Three searches means ~3× the trials; false-discovery correction uses the *joint* count. Per-bot registries would silently restore the overfitting the gate prevents"],
+        ["**Attribution split: signal / timing / exit alpha**", "P2", "MISSED::Three bots now share one P&L. Without the split, no bot can be improved or fired on evidence"],
+        ["Separate feature namespace, registry entry and retrain cadence per bot", "P1", "Independence at the feature and model layer. **Raw data lake stays shared** — three ingestion paths means three bots disagreeing about the price"],
+        ["Per-bot competency level and independent promotion", "P2", "A bot at competency 2 gets no capital because its sibling is at 5"],
+        ["Portfolio netting layer above the brains", "P2", "Two brains on opposite sides of one symbol pay fees both ways. Activates once a second brain holds capital"]
+      ]
+    },
+    {
+      "idx": "04", "title": "Strategy families",
+      "rows": [
+        ["**Funding-rate carry**", "P1", "**Start here** — latency-immune, viable at this size"],
+        ["**Spot-perp basis**", "P1", "Same"],
+        ["Calendar / term-structure spreads", "P2", ""],
+        ["Directional momentum (minutes–hours)", "P2", "Latency-insensitive"],
+        ["Mean reversion", "P2", ""],
+        ["Cross-venue relative value", "P3", "Needs same-region VMs"],
+        ["Liquidation-cascade fading", "P3", "High risk, real edge, needs the venue-health layer first"],
+        ["Event-driven (listings, unlocks, upgrades)", "P3", "MISSED::A distinct, under-explored family"],
+        ["Statistical arbitrage / pairs", "P3", ""],
+        ["**Variance risk premium harvest**", "P3", "Options. Latency-immune and durable — the strongest options family for this profile"],
+        ["Delta-neutral vol / gamma scalping", "P3", "Options"],
+        ["Covered calls / cash-secured puts", "P3", "Options. Simplest entry, but caps upside"],
+        ["Skew and calendar/diagonal spreads", "P3", "Options"],
+        ["Market making / passive liquidity", "—", "**Closed** — no reachable rebate tier, 10–20× queue disadvantage"],
+        ["Latency arbitrage", "—", "**Closed** — 5–10μs races vs an ~8ms cloud floor"],
+        ["Triangular arbitrage", "—", "Found never profitable after fees in a 2024 Binance study"]
+      ]
+    },
+    {
+      "idx": "05", "title": "Execution",
+      "rows": [
+        ["Limit / market / post-only / IOC / FOK", "P0", ""],
+        ["**Reduce-only orders**", "P1", "MISSED::Prevents an exit accidentally opening a reverse position"],
+        ["Idempotency key on every order", "P0", "Client order ID derived deterministically"],
+        ["Partial-fill tracking by remaining quantity", "P0", "Never a binary filled flag"],
+        ["Fee-tier-aware venue routing", "P1", "Worth more than any execution algorithm at this size"],
+        ["Maker-vs-taker decision per order", "P1", "Post-only as cost reduction, not a standalone strategy"],
+        ["Per-order slippage budget + abort", "P1", "MISSED::Cancel if the book moved past tolerance before ack"],
+        ["**Signal expiry / time-in-force discipline**", "P0", "MISSED::A signal computed 5 minutes ago must not fire now"],
+        ["Cancel/amend churn limits", "P1", "Kraken and OKX penalise churn explicitly"],
+        ["**Cross-strategy position netting**", "P2", "MISSED::Two strategies taking opposite sides pay fees *both ways*. Net internally before routing"],
+        ["Smart order routing across venues", "P3", ""],
+        ["Iceberg / hidden orders", "P3", ""],
+        ["TWAP / VWAP / Almgren-Chriss", "—", "Clips are thousands of times below where slicing helps"]
+      ]
+    },
+    {
+      "idx": "05b", "title": "Options layer",
+      "note": "Required before any options position. **Venue reality:** Deribit carries the overwhelming majority of crypto options volume — trading them seriously means accepting single-venue concentration, directly against the per-venue exposure cap. **Zomma, quantified** (same contract, S≈30.4–31, K=30, T=90d, r=4.15%): at 15.9% IV, Δ 0.636 / Γ 0.130 / **Zomma −0.749**; at 8.6% IV, Δ 0.822 / Γ 0.164 / **Zomma −0.373**. Lower vol makes the gamma bell taller and narrower. **Do not write from scratch:** Diffrax 0.7.2 (Apache-2.0) for differentiable SDE calibration · py-pde 0.58.0 (MIT) for Black-Scholes / Dupire / Fokker-Planck PDEs · FinancePy 1.0.1 (**GPL-3.0** ⚠) for SABR, LMM, Hull-White · vollib, pysabr, optlib, tf-quant-finance, PyQL worth a pass before hand-rolling a vol surface.",
+      "rows": [
+        ["Full option chain ingestion", "P3", "Strikes, expiries, bid/ask, OI per contract"],
+        ["**Implied-vol surface fit**", "P3", "Skew + term structure. Black-Scholes assumptions fit crypto poorly"],
+        ["Greeks computation (Δ, Γ, ν, Θ, ρ)", "P3", "Per position **and** portfolio-aggregated"],
+        ["**Zomma (dGamma/dVol)**", "P3", "MISSED::Third-order Greek. Near the money it runs **negative** — a vol spike drains gamma from exactly where you are positioned, without the underlying moving at all. Combined with the leverage effect, **gamma and direction get hit together**"],
+        ["**Greeks-based pre-trade gate**", "P3", "**A second risk implementation** — notional limits do not describe an options book. A short-vol position can be tiny by notional, catastrophic by vega"],
+        ["IV vs realized-vol spread", "P3", "The variance-risk-premium signal itself"],
+        ["Put/call skew, term-structure features", "P3", ""],
+        ["**Pin risk / expiry management**", "P3", "MISSED::Positions near strike at expiry behave discontinuously"],
+        ["Exercise & assignment handling", "P3", "Including auto-exercise rules per venue"],
+        ["Delta-hedge scheduler", "P3", "Hedge frequency is a cost/risk tradeoff, not a constant"],
+        ["Vega and gamma exposure limits", "P3", "Portfolio-level, distinct from notional caps"]
+      ]
+    },
+    {
+      "idx": "06", "title": "Risk",
+      "rows": [
+        ["Pre-trade gate: notional, leverage, position cap", "P0", "Blocks the order *before* it is sent"],
+        ["Exchange-side kill switch / dead-man", "P0", ""],
+        ["Watchdog process + firewall network kill", "P0", "Separate process; the bot cannot police itself"],
+        ["Per-venue exposure cap (~25–30% of capital)", "P1", ""],
+        ["**Liquidation-distance monitor**", "P0", "MISSED::For perps this is survival. Alert on margin ratio, not just P&L"],
+        ["Margin health / auto-deleverage risk", "P1", "ADL can overshoot — one venue expended 8× the actual deficit"],
+        ["Graduated drawdown ladder", "P1", "Never a single binary kill"],
+        ["Correlation-breakdown breaker", "P2", "Portfolio-level, leading indicator"],
+        ["Volatility-scaled sizing", "P1", "Primary sizer"],
+        ["Fractional-Kelly ceiling", "P1", "Cap, never a target"],
+        ["Auto-flatten on venue degradation", "P1", ""],
+        ["Concentration limit per asset", "P2", ""],
+        ["**Deployment freeze windows**", "P1", "MISSED::Never deploy during high vol or near funding settlement"],
+        ["Post-trade reconciliation vs exchange truth", "P0", ""]
+      ]
+    },
+    {
+      "idx": "07", "title": "Portfolio",
+      "rows": [
+        ["Discounted-bandit allocator", "P2", "Vanilla Thompson assumes stationary arms"],
+        ["Capacity tracking per strategy", "P2", "Divergence from a fixed-size shadow book"],
+        ["Rebalance scheduler", "P2", ""],
+        ["**P&L attribution by cost component**", "P1", "MISSED::Split gross edge / fees / slippage / funding / impact. You cannot fix what you cannot attribute"],
+        ["Attribution by strategy, venue, regime", "P2", ""],
+        ["Capital sweep to self-custody above a threshold", "P1", "Scheduled, not continuous"],
+        ["**RMT correlation denoising (Marchenko–Pastur)**", "P2", "MISSED::Sample correlation matrices are dominated by noise, and that noise is what portfolio optimisers latch onto. Compare the empirical eigenvalue spectrum against the Marchenko–Pastur bound and **discard eigenvalues indistinguishable from random**; rebuild the matrix from what survives. Without this, \"optimal\" weights are fitted to sampling error"],
+        ["**Constrained optimisation via CVXPY**", "P2", "Apache-2.0, v1.9.2. Expresses Markowitz, **CVaR**, tracking-error minimisation and **MIP cardinality caps**; compiles to a cone program. Denoise the covariance *before* optimising, or the solver optimises noise precisely"],
+        ["**Bayesian posteriors via NumPyro**", "P2", "Apache-2.0, v0.21.0. NUTS on JAX. **Stochastic volatility, regime detection, hierarchical alpha** — anywhere a point estimate hides the risk that actually matters. Returns a distribution to feed the risk gate, not a single number"]
+      ]
+    },
+    {
+      "idx": "08", "title": "Validation & research",
+      "rows": [
+        ["Experiment ledger — **including abandoned runs**", "P0", "Every statistic depends on the true trial count"],
+        ["Trial Registry (cumulative N, enforced)", "P0", ""],
+        ["Holdout Custodian (refuses queries)", "P0", ""],
+        ["Purge + embargo, **configured per family**", "P0", "Horizons differ by orders of magnitude"],
+        ["CPCV harness", "P1", "Finalists only — combinatorics explode"],
+        ["Deflated Sharpe as in-loop fitness", "P0", "Not a report on the winner"],
+        ["PBO / CSCV", "P1", ""],
+        ["MinBTL hard gate", "P0", "Cheap, closed-form"],
+        ["BH-FDR on the promoted set", "P1", "Bonferroni too blunt at large N"],
+        ["Hansen SPA at the promotion gate", "P2", "\"Does the challenger beat the incumbent, corrected for variants tried\""],
+        ["Bootstrapped max-drawdown distribution", "P1", "Sets non-arbitrary circuit-breaker thresholds"],
+        ["Shadow trading with alignment metrics", "P1", "≥95% signal, ≥90% execution match"],
+        ["**Regime-coverage tracker**", "P1", "MISSED::Gate on having seen a drawdown and a vol spike, not elapsed days"],
+        ["Backtest-vs-live divergence monitor", "P1", "Technical divergence (bug) vs statistical decay (regime)"],
+        ["**Mechanism-health metric per strategy**", "P1", "MISSED::Declared at promotion; the only fast decay signal"]
+      ]
+    },
+    {
+      "idx": "09", "title": "Operations",
+      "rows": [
+        ["Venue health monitor + auto-halt", "P0", ""],
+        ["Cross-strategy rate-limit budgeter", "P0", "Limits are per-IP and exchange-wide"],
+        ["Order-intent write-ahead log", "P0", "Written *before* the request is sent"],
+        ["State recovery from exchange truth on restart", "P0", ""],
+        ["Clock sync via `chrony` + drift alerting", "P0", "Alert well before `recvWindow`, not after rejections"],
+        ["Sequence-gap detection on book streams", "P0", "Heartbeat proves the socket, not the data"],
+        ["Reconnect with full-jitter backoff, honour `Retry-After`", "P0", "Bans scale to days and are per-IP"],
+        ["Disk / memory / resource watchdog", "P0", "Fail loud on disk-full or the WAL dies silently"],
+        ["**Cold-start behaviour**", "P0", "MISSED::Defined behaviour on first boot with no state"],
+        ["**Disaster recovery runbook**", "P1", "MISSED::VM dies mid-position: what recovers, in what order"],
+        ["Tiered alerting (page / notify / log)", "P1", ""],
+        ["Structured audit log of every decision", "P1", ""]
+      ]
+    },
+    {
+      "idx": "10", "title": "Security",
+      "rows": [
+        ["Withdrawal permission **never** on trading keys", "P0", "Bounds a leak to bad trades"],
+        ["IP allowlisting", "P0", "Mandatory on Binance for trading-capable keys"],
+        ["`sops` + `age` secret management", "P0", ""],
+        ["Treasury / cold-storage separation", "P0", "Separate sub-account, zero API surface"],
+        ["Per-venue sub-accounts", "P1", "Blast-radius containment"],
+        ["Key rotation procedure", "P1", "No exchange appears to offer programmatic self-revocation"],
+        ["Anomaly detection on own order behaviour", "P2", "MISSED::Catches a compromised or runaway bot from the outside"],
+        ["**Third-party model weights treated as untrusted binaries**", "P1", "MISSED::The moment Kronos is adopted as a zero-shot baseline, we load weights from HuggingFace. **Weights are data, and data can carry object code** — embed pre-built object code in layers the forward pass never executes, so the network's behaviour is unchanged and nothing looks wrong, then link it at deployment. This is the **xz-utils playbook**. Mitigation: **pin by content hash, prefer `safetensors` over pickle, run inference sandboxed and network-isolated.** Detection tooling for this class is immature — containment is the control, not scanning"],
+        ["**Agent-with-wallet blast radius**", "P2", "Relevant if any component is ever given spend authority. Agents holding their own keys, paying for compute, and self-replicating while solvent is **\"never do\" territory** unless capital movement stays behind the human gate"]
+      ]
+    },
+    {
+      "idx": "11", "title": "Intelligence layer",
+      "note": "**This section is the thin version.** The full capability space — 71 candidate features, 39 rated HIGH — is in **IDEAS-INTELLIGENCE.md**. The ten highest-leverage, in order: belief records with provenance and half-life · read/verified/observed epistemic classes · verification-before-ingestion · abstention as a real action · self-calibration scoring · \"who loses when I win?\" · meta-analysis over the Trial Registry · own-footprint attribution · cost-of-operation in the objective · property-based invariants across backtest/shadow/live.",
+      "rows": [
+        ["Dual-LLM quarantine for untrusted content", "P1", "Reader has no tools and no credentials"],
+        ["**LLM look-ahead guard**", "P1", "MISSED::LLMs know outcomes inside their training window; any LLM-derived signal is contaminated on those dates"],
+        ["Research synthesis / literature ingestion", "P2", ""],
+        ["Automated postmortem writer", "P2", "Feeds the ledger"],
+        ["Knowledge base / memory", "P2", ""],
+        ["LLM-authored strategy code", "P3", "Sandboxed, gated, never auto-promoted"]
+      ]
+    },
+    {
+      "idx": "12", "title": "Governance & compliance",
+      "rows": [
+        ["Manual promote button", "P0", "Already decided"],
+        ["Config versioning + rollback", "P0", ""],
+        ["Change log tied to deployments", "P1", ""],
+        ["**Tax / accounting fill record**", "P1", "MISSED::Every fill, timestamped, in an exportable ledger. Painful to reconstruct after the fact"],
+        ["**Jurisdiction / venue eligibility check**", "P1", "MISSED::Which venues are legally usable, and KYC tier limits"],
+        ["Retention policy for proprietary code and data", "P1", "Decides whether Fable 5 is usable at all"]
+      ]
+    },
+    {
+      "idx": "13", "title": "Observability",
+      "rows": [
+        ["Latency histograms per venue and endpoint", "P1", ""],
+        ["Fill-quality metrics vs assumed", "P1", "The number that predicts live degradation"],
+        ["Cost breakdown dashboard", "P2", ""],
+        ["Strategy health board", "P2", ""],
+        ["Ultra-visual animated node dashboard", "P3", "Produces zero alpha; scales with node count"]
+      ]
+    }
+  ],
+  "ranked": [
+    "**Cross-strategy netting** — paying fees to trade against yourself",
+    "**P&L attribution by cost component** — cannot fix what you cannot attribute",
+    "**Liquidation-distance monitor** — survival metric for perps",
+    "**Signal expiry** — stale signals firing into a changed market",
+    "**Linear baseline as a promotion prerequisite**",
+    "**Mechanism-health metric** — the only fast decay signal",
+    "**Regime-coverage gate** instead of elapsed days",
+    "**Tax / accounting fill record**",
+    "**Cold-start behaviour**",
+    "**Disaster-recovery runbook**",
+    "**Reduce-only orders**",
+    "**Feature staleness timestamps**",
+    "**Deployment freeze windows**",
+    "**Funding-hour seasonality**",
+    "**Stablecoin peg monitoring**",
+    "**Mark vs index vs oracle price per venue**",
+    "**Wash-trading volume discount**",
+    "**LLM look-ahead guard**",
+    "**Jurisdiction / venue eligibility**",
+    "**Per-feed data-quality scoring**"
+  ],
+  "gate": [
+    ["Data", "Bitemporal store, clock-gated access, gap detection, feature staleness stamps."],
+    ["Validation", "Ledger with abandoned runs, Trial Registry, Holdout Custodian, purge/embargo, DSR in-loop, MinBTL."],
+    ["Execution", "Idempotency keys, partial-fill tracking, signal expiry."],
+    ["Risk", "Pre-trade gate, kill switch, watchdog + firewall, liquidation-distance monitor, reconciliation."],
+    ["Ops", "Venue health, rate budgeter, WAL, state recovery, clock sync, sequence-gap detection, backoff, resource watchdog, cold-start."],
+    ["Security", "No withdrawal permission, IP allowlist, `sops` + `age`, treasury separation."],
+    ["Governance", "Manual promote, config versioning."]
+  ]
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+
+  var DATA = JSON.parse(document.getElementById("data").textContent);
+
+  /* Renders the light markup used in the source notes: **bold**, *italic*, `code`.
+     Built with DOM nodes rather than innerHTML so note text stays inert. */
+  function richText(target, text) {
+    var re = /\*\*([^*]+)\*\*|\*([^*]+)\*|`([^`]+)`/g;
+    var last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+      if (m.index > last) target.appendChild(document.createTextNode(text.slice(last, m.index)));
+      var el;
+      if (m[1] !== undefined)      { el = document.createElement("strong"); el.textContent = m[1]; }
+      else if (m[2] !== undefined) { el = document.createElement("em");     el.textContent = m[2]; }
+      else                         { el = document.createElement("code");   el.textContent = m[3]; }
+      target.appendChild(el);
+      last = re.lastIndex;
+    }
+    if (last < text.length) target.appendChild(document.createTextNode(text.slice(last)));
+    return target;
+  }
+
+  var cats = document.getElementById("cats");
+  var allRows = [];
+  var counts = { P0: 0, P1: 0, P2: 0, P3: 0, "—": 0, missed: 0, total: 0 };
+
+  DATA.sections.forEach(function (sec) {
+    var section = document.createElement("section");
+    section.className = "cat";
+
+    var head = document.createElement("div");
+    head.className = "sec-head";
+
+    var idx = document.createElement("span");
+    idx.className = "sec-idx";
+    idx.textContent = sec.idx;
+    head.appendChild(idx);
+
+    var h = document.createElement("h2");
+    h.className = "sec-title";
+    h.textContent = sec.title;
+    head.appendChild(h);
+
+    if (sec.isNew) {
+      var flag = document.createElement("span");
+      flag.className = "flag-new";
+      flag.textContent = "New 2026-08-03";
+      head.appendChild(flag);
+    }
+
+    var cnt = document.createElement("span");
+    cnt.className = "sec-count";
+    head.appendChild(cnt);
+    section.appendChild(head);
+
+    if (sec.note) {
+      var note = document.createElement("p");
+      note.className = "sec-note";
+      richText(note, sec.note);
+      section.appendChild(note);
+    }
+
+    var rows = document.createElement("div");
+    rows.className = "rows";
+    var sectionRows = [];
+
+    sec.rows.forEach(function (r) {
+      var name = r[0], phase = r[1], rawNote = r[2] || "";
+      var missed = rawNote.indexOf("MISSED::") === 0;
+      var noteText = missed ? rawNote.slice(8) : rawNote;
+
+      var row = document.createElement("div");
+      row.className = "row" + (missed ? " is-missed" : "");
+
+      var nameCell = document.createElement("div");
+      nameCell.className = "r-name";
+      richText(nameCell, name);
+      if (missed) {
+        var tag = document.createElement("span");
+        tag.className = "tag";
+        tag.textContent = "MISSED";
+        nameCell.appendChild(tag);
+      }
+      row.appendChild(nameCell);
+
+      var phaseCell = document.createElement("div");
+      phaseCell.className = "r-phase";
+      phaseCell.setAttribute("data-p", phase);
+      phaseCell.textContent = phase;
+      row.appendChild(phaseCell);
+
+      var noteCell = document.createElement("div");
+      noteCell.className = "r-note";
+      if (noteText) richText(noteCell, noteText);
+      row.appendChild(noteCell);
+
+      rows.appendChild(row);
+
+      var entry = {
+        el: row,
+        phase: phase,
+        missed: missed,
+        haystack: (name + " " + noteText + " " + sec.title).toLowerCase().replace(/[*`]/g, "")
+      };
+      allRows.push(entry);
+      sectionRows.push(entry);
+
+      counts[phase] = (counts[phase] || 0) + 1;
+      counts.total += 1;
+      if (missed) counts.missed += 1;
+    });
+
+    section.appendChild(rows);
+    cats.appendChild(section);
+    section._rows = sectionRows;
+    section._count = cnt;
+  });
+
+  /* summary tiles */
+  var strip = document.getElementById("strip");
+  [
+    ["Features", counts.total, "catalogued", ""],
+    ["Missed", counts.missed, "cost money late", "missed"],
+    ["P0", counts.P0, "before capital", "p0"],
+    ["P1", counts.P1, "before first live", "p1"],
+    ["P2", counts.P2, "before second", "p2"],
+    ["P3", counts.P3, "at scale", "p3"],
+    ["Declined", counts["—"], "closed on evidence", ""]
+  ].forEach(function (t) {
+    var tile = document.createElement("div");
+    tile.className = "tile";
+    if (t[3]) tile.setAttribute("data-tone", t[3]);
+    var k = document.createElement("div"); k.className = "tile-k"; k.textContent = t[0];
+    var v = document.createElement("div"); v.className = "tile-v"; v.textContent = t[1];
+    var s = document.createElement("div"); s.className = "tile-sub"; s.textContent = t[2];
+    tile.appendChild(k); tile.appendChild(v); tile.appendChild(s);
+    strip.appendChild(tile);
+  });
+
+  /* ranked list */
+  var ranked = document.getElementById("ranked");
+  DATA.ranked.forEach(function (item) {
+    var li = document.createElement("li");
+    var span = document.createElement("span");
+    richText(span, item);
+    li.appendChild(span);
+    ranked.appendChild(li);
+  });
+
+  /* phase 0 gate */
+  var gate = document.getElementById("gate");
+  DATA.gate.forEach(function (g) {
+    var wrap = document.createElement("div");
+    var dt = document.createElement("dt"); dt.textContent = g[0];
+    var dd = document.createElement("dd"); richText(dd, g[1]);
+    wrap.appendChild(dt); wrap.appendChild(dd);
+    gate.appendChild(wrap);
+  });
+
+  /* filtering */
+  var q = document.getElementById("q");
+  var live = document.getElementById("live");
+  var empty = document.getElementById("empty");
+  var chips = Array.prototype.slice.call(document.querySelectorAll(".chip"));
+  var phaseFilter = new Set();
+  var missedOnly = false;
+
+  function apply() {
+    var term = q.value.trim().toLowerCase();
+    var shown = 0;
+
+    allRows.forEach(function (r) {
+      var ok = true;
+      if (phaseFilter.size && !phaseFilter.has(r.phase)) ok = false;
+      if (missedOnly && !r.missed) ok = false;
+      if (ok && term && r.haystack.indexOf(term) === -1) ok = false;
+      r.el.hidden = !ok;
+      if (ok) shown += 1;
+    });
+
+    Array.prototype.forEach.call(cats.children, function (section) {
+      var n = section._rows.filter(function (r) { return !r.el.hidden; }).length;
+      section.hidden = n === 0;
+      section._count.textContent = n + (n === 1 ? " item" : " items");
+    });
+
+    live.textContent = shown + " / " + counts.total + " shown";
+    empty.hidden = shown !== 0;
+  }
+
+  chips.forEach(function (chip) {
+    chip.addEventListener("click", function () {
+      var p = chip.getAttribute("data-p");
+      var on = chip.getAttribute("aria-pressed") === "true";
+      chip.setAttribute("aria-pressed", on ? "false" : "true");
+      if (p === "missed") missedOnly = !on;
+      else if (on) phaseFilter.delete(p);
+      else phaseFilter.add(p);
+      apply();
+    });
+  });
+  q.addEventListener("input", apply);
+
+  /* theme toggle — stamps data-theme so it wins over the media query both ways */
+  document.getElementById("theme").addEventListener("click", function () {
+    var root = document.documentElement;
+    var current = root.getAttribute("data-theme");
+    if (!current) {
+      var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      current = prefersDark ? "dark" : "light";
+    }
+    root.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+  });
+
+  apply();
+})();
+</script>

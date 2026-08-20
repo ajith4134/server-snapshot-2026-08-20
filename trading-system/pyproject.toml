@@ -1,0 +1,54 @@
+[project]
+name = "capture"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "websockets>=17.0.1",
+    "zstandard>=0.25.0",
+    "aiohttp>=3.10",
+    "pandas>=3.0.5",
+    "pyarrow>=25.0.0",
+    # features.fractional_differentiation needs a real ADF stationarity test
+    # to search for the minimum d (see that module's docstring for the
+    # dependency decision - `fracdiff` was declined in favour of a ~40-line
+    # hand-checked weight recursion, but the ADF test itself is not
+    # reimplementable in that budget). Already present in this venv
+    # transitively via `arch`, which is declared "verification only, never
+    # imported by src/" below - so it is promoted here to a declared main
+    # dependency rather than left as an unlisted transitive import.
+    "statsmodels>=0.14",
+    "lightgbm>=4.7.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-randomly>=3.15",
+    # Verification only, never imported by src/. `arch.bootstrap.SPA` is Hansen's
+    # reference implementation and is the only way to check our SPA p-value, which
+    # has no closed form. Declared so the cross-check does not silently vanish in a
+    # fresh environment - importorskip would turn a missing install into a quiet
+    # pass, which is the failure mode that module exists to reject.
+    "arch>=8.0",
+    "hypothesis>=6.100",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# `src/features`, `src/models`, `src/risk` and `src/integrity` were missing here
+# until 2026-08-16 - a wheel built from this file would have shipped a statuswall
+# whose phase-B probes all raise on import, and the tests would not have caught it
+# because pytest runs off `pythonpath = ["src"]` rather than off an install.
+packages = ["src/capture", "src/statuswall", "src/store", "src/cost", "src/ops",
+            "src/plan",
+            "src/execution", "src/validation", "src/paper", "src/features",
+            "src/models", "src/risk", "src/integrity", "src/strategy"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+asyncio_mode = "auto"
+testpaths = ["tests"]
